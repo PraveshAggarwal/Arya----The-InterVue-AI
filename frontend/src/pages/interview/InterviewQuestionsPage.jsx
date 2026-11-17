@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Mic, SkipForward, StopCircle, ChevronRight, PlayCircle } from 'lucide-react';
+import { Mic, StopCircle, PlayCircle } from 'lucide-react';
 import { AIAvatar } from '../../components/interview/AIAvatar';
 import { CandidateCamera } from '../../components/interview/CandidateCamera';
 import { useSpeech } from '../../hooks/useSpeech';
@@ -29,14 +29,20 @@ export const InterviewQuestionsPage = () => {
   const [recordingLoading, setRecordingLoading] = useState(false);
   const [isEnding, setIsEnding] = useState(false);
   const [endError, setEndError] = useState('');
+  const [remarks, setRemarks] = useState('');
+  const [savedRemarks, setSavedRemarks] = useState('');
 
-  const { speaking, listening, transcript, speak, stopSpeaking, listen, stopListening, stopAll } = useSpeech();
+  const { speaking, listening, speak, listen, stopListening, stopAll } = useSpeech();
   const { addToast } = useToast();
 
   const answerRef = useRef('');
   const phaseRef = useRef(phase);
   const endedRef = useRef(false);
   const questionStartTimerRef = useRef(null);
+  const silenceTimerRef = useRef(null);
+  const submitAnswerRef = useRef(null);
+  const processingRef = useRef(false);
+  const noInputPromptedRef = useRef(false);
   const mediaRecorderRef = useRef(null);
   const recordingChunksRef = useRef([]);
   const recordingBlobRef = useRef(null);
@@ -90,8 +96,9 @@ export const InterviewQuestionsPage = () => {
     Promise.all([questionService.getAll(id), interviewService.getById(id)])
       .then(async ([q, i]) => {
         const qs = q.data?.questions || [];
-        if (qs.length) setQuestions(qs);
+        if (qs.length) setQuestions(qs.slice(0, 1));
         setRole(i.data?.jobRole || 'Interview');
+        setSavedRemarks(i.data?.remarks || '');
         setInterviewStatus(i.data?.status || 'draft');
         setInterviewLoaded(true);
         if (i.data?.status === 'completed' && i.data?.hasRecording) {
@@ -122,15 +129,25 @@ export const InterviewQuestionsPage = () => {
       const first = questions[0]?.questionText;
       if (first) {
         setCurrentQuestion(first);
-        questionStartTimerRef.current = setTimeout(() => askQuestion(first), 800);
+        setPhase(PHASE.SPEAKING);
+        questionStartTimerRef.current = setTimeout(() => {
+          speak(
+            `Hi, this is Arya, your AI interviewer for the ${role} role you applied for.`,
+            () => askQuestion(first),
+          );
+        }, 800);
       }
     }
-  }, [questions, interviewLoaded, interviewStatus]);
+  }, [questions, interviewLoaded, interviewStatus, role, speak]);
 
-  useEffect(() => () => clearTimeout(questionStartTimerRef.current), []);
+  useEffect(() => () => {
+    clearTimeout(questionStartTimerRef.current);
+    clearTimeout(silenceTimerRef.current);
+  }, []);
 
-  const askQuestion = useCallback((text) => {
+  const askQuestion = useCallback((text, repeated = false) => {
     if (endedRef.current) return;
+    if (!repeated) noInputPromptedRef.current = false;
     setPhase(PHASE.SPEAKING);
     setLiveTranscript('');
     answerRef.current = '';
@@ -142,16 +159,42 @@ export const InterviewQuestionsPage = () => {
   const startListening = useCallback(() => {
     if (endedRef.current) return;
     setPhase(PHASE.LISTENING);
+    clearTimeout(silenceTimerRef.current);
+    silenceTimerRef.current = setTimeout(() => {
+      if (endedRef.current || answerRef.current.trim()) return;
+      stopListening();
+      if (noInputPromptedRef.current) {
+        answerRef.current = '(no answer)';
+        submitAnswerRef.current?.();
+        return;
+      }
+      noInputPromptedRef.current = true;
+      setPhase(PHASE.SPEAKING);
+      speak(
+        `I did not receive any input from your side. I will repeat the question. ${currentQuestion}`,
+        () => startListening(),
+      );
+    }, 10000);
     listen(
-      (interim) => { setLiveTranscript(interim); answerRef.current = interim; },
+      (interim) => {
+        setLiveTranscript(interim); answerRef.current = interim;
+        clearTimeout(silenceTimerRef.current);
+        if (interim.trim()) silenceTimerRef.current = setTimeout(() => submitAnswerRef.current?.(), 5000);
+      },
       (final) => {
-        answerRef.current = final;
-        setLiveTranscript(final);
+        if (final) { answerRef.current = final; setLiveTranscript(final); }
+        if (final.trim()) {
+          clearTimeout(silenceTimerRef.current);
+          silenceTimerRef.current = setTimeout(() => submitAnswerRef.current?.(), 5000);
+        }
       }
     );
-  }, [listen]);
+  }, [listen, stopListening, speak, currentQuestion]);
 
   const submitAnswer = useCallback(async () => {
+    if (endedRef.current || processingRef.current) return;
+    processingRef.current = true;
+    clearTimeout(silenceTimerRef.current);
     stopListening();
     const answer = answerRef.current.trim() || '(no answer)';
     setPhase(PHASE.THINKING);
@@ -159,9 +202,7 @@ export const InterviewQuestionsPage = () => {
     const newHistory = [...history, { question: currentQuestion, answer }];
     setHistory(newHistory);
 
-    const remainingTopics = questions
-      .slice(currentIndex + 1)
-      .map((q) => q.category || q.topic || 'General');
+    const remainingTopics = questions.slice(currentIndex + 1).map((q) => q.category || q.topic || 'General');
 
     try {
       const res = await interviewService.nextQuestion(id, {
@@ -175,6 +216,11 @@ export const InterviewQuestionsPage = () => {
 
       const next = res.data;
       if (endedRef.current) return;
+      if (next.action === 'complete') {
+        setRemarks(next.remarks || 'Thank you for completing the interview. Your responses showed your current strengths and areas to keep developing.');
+        await finishInterview(next.remarks || 'Thank you for completing the interview. Your responses showed your current strengths and areas to keep developing.');
+        return;
+      }
       const isFollowUp = next.action === 'follow_up';
 
       if (isFollowUp) {
@@ -183,22 +229,19 @@ export const InterviewQuestionsPage = () => {
         askQuestion(next.question);
       } else {
         const nextIndex = currentIndex + 1;
-        if (nextIndex >= questions.length) {
-          finishInterview();
-        } else {
-          setFollowupCount(0);
-          setCurrentIndex(nextIndex);
-          const nextQ = questions[nextIndex].questionText;
-          setCurrentQuestion(nextQ);
-          askQuestion(nextQ);
-        }
+        setFollowupCount(0);
+        setCurrentIndex(nextIndex);
+        const nextQ = next.question;
+        setQuestions((existing) => [...existing, { questionText: nextQ, category: next.topic || 'General' }]);
+        setCurrentQuestion(nextQ);
+        askQuestion(nextQ);
       }
     } catch {
       if (endedRef.current) return;
-      // Fallback: just go to next planned question
+      // Keep the interview moving if question generation is temporarily unavailable.
       const nextIndex = currentIndex + 1;
       if (nextIndex >= questions.length) {
-        finishInterview();
+        await finishInterview('The interview ended after a temporary issue generating the next question.');
       } else {
         setFollowupCount(0);
         setCurrentIndex(nextIndex);
@@ -207,25 +250,12 @@ export const InterviewQuestionsPage = () => {
         askQuestion(nextQ);
       }
     }
+    finally { processingRef.current = false; }
   }, [currentQuestion, currentIndex, followupCount, history, questions, role, id, askQuestion, stopListening]);
 
-  const skipQuestion = useCallback(() => {
-    if (endedRef.current) return;
-    stopListening();
-    stopSpeaking();
-    const nextIndex = currentIndex + 1;
-    if (nextIndex >= questions.length) {
-      finishInterview();
-    } else {
-      setFollowupCount(0);
-      setCurrentIndex(nextIndex);
-      const nextQ = questions[nextIndex].questionText;
-      setCurrentQuestion(nextQ);
-      askQuestion(nextQ);
-    }
-  }, [currentIndex, questions, askQuestion, stopListening, stopSpeaking]);
+  submitAnswerRef.current = submitAnswer;
 
-  const saveEndedInterview = useCallback(async (blob) => {
+  const saveEndedInterview = useCallback(async (blob, finalRemarks = remarks) => {
     const form = new FormData();
     if (blob?.size) {
       const extension = blob.type.includes('mp4') ? 'mp4' : 'webm';
@@ -233,18 +263,19 @@ export const InterviewQuestionsPage = () => {
       const recording = new File([blob], `interview-${id}.${extension}`, { type: mimeType });
       form.append('recording', recording);
     }
+    form.append('remarks', finalRemarks || 'Thank you for completing the interview.');
     try {
       await interviewService.complete(id, form);
       setInterviewStatus('completed');
       setEndError('');
-      navigate('/history', { replace: true });
+      navigate(`/interview/${id}`, { replace: true });
     } catch (error) {
       try {
         const current = await interviewService.getById(id);
         if (current.data?.status === 'completed') {
           setInterviewStatus('completed');
           setEndError('');
-          navigate('/history', { replace: true });
+          navigate(`/interview/${id}`, { replace: true });
           return;
         }
       } catch {
@@ -252,12 +283,13 @@ export const InterviewQuestionsPage = () => {
       }
       setEndError(error.response?.data?.message || 'Could not save the completed interview. Retry to finish saving it.');
     }
-  }, [id, navigate]);
+  }, [id, navigate, remarks]);
 
-  const finishInterview = useCallback(async () => {
+  const finishInterview = useCallback(async (finalRemarks = remarks) => {
     if (endedRef.current) return;
     endedRef.current = true;
     clearTimeout(questionStartTimerRef.current);
+    clearTimeout(silenceTimerRef.current);
     stopAll();
     setLiveTranscript('');
     setPhase(PHASE.DONE);
@@ -265,9 +297,9 @@ export const InterviewQuestionsPage = () => {
     const recording = await stopRecording();
     setCameraOn(false);
     if (!recording) addToast('No recording was captured. This interview will still be marked complete.', 'warning');
-    await saveEndedInterview(recording);
+    await saveEndedInterview(recording, finalRemarks);
     setIsEnding(false);
-  }, [stopAll, stopRecording, saveEndedInterview, addToast]);
+  }, [stopAll, stopRecording, saveEndedInterview, addToast, remarks]);
 
   const progress = questions.length ? Math.round(((currentIndex) / questions.length) * 100) : 0;
 
@@ -283,6 +315,7 @@ export const InterviewQuestionsPage = () => {
           <h1 className="text-3xl font-black text-white mt-1">{role}</h1>
           <p className="text-sm text-slate-400 mt-2">This interview has ended and cannot be restarted. You can watch its recording below.</p>
         </div>
+        {savedRemarks && <div className="rounded-2xl border border-sky-500/20 bg-[#0d1526] p-5"><p className="text-xs uppercase tracking-wider text-sky-400 mb-2 font-semibold">Interview remarks</p><p className="text-sm text-slate-200 leading-relaxed">{savedRemarks}</p></div>}
         {recordingLoading ? (
           <div className="rounded-2xl border border-[#1b2640] bg-[#0a0f1d] p-8 text-center text-sm text-slate-400">Loading recording...</div>
         ) : recordingUrl ? (
@@ -308,9 +341,6 @@ export const InterviewQuestionsPage = () => {
       <div className="flex items-center justify-between px-6 py-3 border-b border-[#141d33] bg-[#080c16]">
         <div className="flex items-center gap-3">
           <span className="text-xs font-bold text-white">{role}</span>
-          <span className="text-[10px] text-slate-400">
-            Question {Math.min(currentIndex + 1, questions.length)} of {questions.length}
-          </span>
         </div>
         {/* Progress bar */}
         <div className="flex-1 mx-8 h-1.5 bg-[#1b2640] rounded-full overflow-hidden">
@@ -378,16 +408,6 @@ export const InterviewQuestionsPage = () => {
 
           {/* Controls */}
           <div className="flex flex-col gap-2">
-            {phase === PHASE.LISTENING && (
-              <button
-                onClick={submitAnswer}
-                className="w-full py-3 rounded-xl font-bold text-white bg-gradient-to-r from-blue-600 to-sky-500 flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
-              >
-                <ChevronRight className="w-5 h-5" />
-                Submit Answer
-              </button>
-            )}
-
             {phase === PHASE.SPEAKING && (
               <div className="flex items-center justify-center gap-2 py-3 text-xs text-sky-400">
                 <Mic className="w-4 h-4 animate-pulse" />
@@ -400,16 +420,6 @@ export const InterviewQuestionsPage = () => {
                 <span className="animate-spin">⚙</span>
                 Generating next question...
               </div>
-            )}
-
-            {(phase === PHASE.LISTENING || phase === PHASE.SPEAKING) && (
-              <button
-                onClick={skipQuestion}
-                className="w-full py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-200 border border-[#1b2640] hover:border-slate-500 flex items-center justify-center gap-2 transition-all"
-              >
-                <SkipForward className="w-4 h-4" />
-                Skip Question
-              </button>
             )}
 
             {phase === PHASE.DONE && (

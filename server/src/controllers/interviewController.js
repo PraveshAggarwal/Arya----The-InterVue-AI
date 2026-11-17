@@ -62,6 +62,7 @@ const getInterviewById = async (req, res) => {
 const completeInterview = async (req, res) => {
   try {
     const { id } = req.params;
+    const remarks = typeof req.body?.remarks === "string" ? req.body.remarks.trim().slice(0, 3000) : "";
     if (!mongoose.Types.ObjectId.isValid(id)) {
       await removeUploadedRecording(req.file);
       return res.status(400).json({ success: false, message: "Invalid interview ID." });
@@ -82,6 +83,7 @@ const completeInterview = async (req, res) => {
       {
         $set: {
           status: "completed",
+          remarks,
           completedAt: new Date(),
           hasRecording: Boolean(req.file),
           recordingPath: req.file?.path || "",

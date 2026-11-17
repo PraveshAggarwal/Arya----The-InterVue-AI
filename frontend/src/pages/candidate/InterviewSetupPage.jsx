@@ -50,7 +50,6 @@ export const InterviewSetupPage = () => {
         resumeId,
         jobRole: jobRole.trim(),
         jobDescription: jobDescription.trim(),
-        totalQuestions: 8,
       });
       const { data } = await questionService.generate(interview._id);
       addToast('Interview questions generated!', 'success');

@@ -70,6 +70,11 @@ const interviewSchema = new mongoose.Schema(
       default: [],
     },
 
+    remarks: {
+      type: String,
+      default: "",
+    },
+
     status: {
       type: String,
       enum: ["draft", "completed"],

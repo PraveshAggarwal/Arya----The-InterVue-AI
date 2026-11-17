@@ -23,7 +23,7 @@ DIFFICULTY: {difficulty}
 SKILLS: {', '.join(skills) if skills else 'Not specified'}
 RESUME: {resume_text[:3000]}
 
-Rules: Include intro, technical, scenario, problem-solving, behavioral questions. No duplicates. Sound natural when spoken.
+Rules: Order the questions from a very basic warm-up, then gradually increase difficulty from foundational concepts to role-specific technical, scenario, problem-solving, project, and behavioral questions. No duplicates. Sound natural when spoken.
 
 Return ONLY this JSON:
 {{

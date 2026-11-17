@@ -7,16 +7,24 @@ export const CandidateCamera = ({ active = true }) => {
 
   useEffect(() => {
     if (!active) return;
+    let cancelled = false;
     navigator.mediaDevices
       .getUserMedia({ video: { width: 640, height: 480, facingMode: 'user' }, audio: false })
       .then((stream) => {
+        if (cancelled) {
+          stream.getTracks().forEach((track) => track.stop());
+          return;
+        }
         streamRef.current = stream;
         if (videoRef.current) videoRef.current.srcObject = stream;
       })
       .catch(() => {});
 
     return () => {
+      cancelled = true;
       streamRef.current?.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+      if (videoRef.current) videoRef.current.srcObject = null;
     };
   }, [active]);
 

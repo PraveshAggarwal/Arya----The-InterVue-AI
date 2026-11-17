@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from app.schemas.interview import NextQuestionRequest
-from app.services.gemini_service import generate_json
+from app.services.llm_service import generate_json
 
 router = APIRouter(prefix="/interview", tags=["Interview"])
 
@@ -41,7 +41,20 @@ Return ONLY this JSON:
 
 action must be either "follow_up" or "next".
 """
-        result = await generate_json(prompt)
+        result = await generate_json(
+            prompt,
+            {
+                "type": "object",
+                "properties": {
+                    "action": {"type": "string", "enum": ["follow_up", "next"]},
+                    "question": {"type": "string"},
+                    "topic": {"type": "string"},
+                    "reason": {"type": "string"},
+                },
+                "required": ["action", "question", "topic", "reason"],
+                "additionalProperties": False,
+            },
+        )
 
         if not isinstance(result.get("question"), str):
             raise ValueError("Invalid question")

@@ -23,10 +23,12 @@ export const InterviewQuestionsPage = () => {
   const [currentQuestion, setCurrentQuestion] = useState('');
   const [cameraOn, setCameraOn] = useState(true);
 
-  const { speaking, listening, transcript, speak, stopSpeaking, listen, stopListening } = useSpeech();
+  const { speaking, listening, transcript, speak, stopSpeaking, listen, stopListening, stopAll } = useSpeech();
 
   const answerRef = useRef('');
   const phaseRef = useRef(phase);
+  const endedRef = useRef(false);
+  const questionStartTimerRef = useRef(null);
   phaseRef.current = phase;
 
   // Load questions if not passed via state
@@ -46,12 +48,15 @@ export const InterviewQuestionsPage = () => {
       const first = questions[0]?.questionText;
       if (first) {
         setCurrentQuestion(first);
-        setTimeout(() => askQuestion(first), 800);
+        questionStartTimerRef.current = setTimeout(() => askQuestion(first), 800);
       }
     }
   }, [questions]);
 
+  useEffect(() => () => clearTimeout(questionStartTimerRef.current), []);
+
   const askQuestion = useCallback((text) => {
+    if (endedRef.current) return;
     setPhase(PHASE.SPEAKING);
     setLiveTranscript('');
     answerRef.current = '';
@@ -61,6 +66,7 @@ export const InterviewQuestionsPage = () => {
   }, [speak]);
 
   const startListening = useCallback(() => {
+    if (endedRef.current) return;
     setPhase(PHASE.LISTENING);
     listen(
       (interim) => { setLiveTranscript(interim); answerRef.current = interim; },
@@ -94,6 +100,7 @@ export const InterviewQuestionsPage = () => {
       });
 
       const next = res.data;
+      if (endedRef.current) return;
       const isFollowUp = next.action === 'follow_up';
 
       if (isFollowUp) {
@@ -113,6 +120,7 @@ export const InterviewQuestionsPage = () => {
         }
       }
     } catch {
+      if (endedRef.current) return;
       // Fallback: just go to next planned question
       const nextIndex = currentIndex + 1;
       if (nextIndex >= questions.length) {
@@ -128,6 +136,7 @@ export const InterviewQuestionsPage = () => {
   }, [currentQuestion, currentIndex, followupCount, history, questions, role, id, askQuestion, stopListening]);
 
   const skipQuestion = useCallback(() => {
+    if (endedRef.current) return;
     stopListening();
     stopSpeaking();
     const nextIndex = currentIndex + 1;
@@ -143,13 +152,15 @@ export const InterviewQuestionsPage = () => {
   }, [currentIndex, questions, askQuestion, stopListening, stopSpeaking]);
 
   const finishInterview = useCallback(() => {
-    stopListening();
-    stopSpeaking();
+    if (endedRef.current) return;
+    endedRef.current = true;
+    clearTimeout(questionStartTimerRef.current);
+    stopAll();
+    setCameraOn(false);
+    setLiveTranscript('');
     setPhase(PHASE.DONE);
-    speak("Thank you for completing the interview. Great job! You will be redirected shortly.", () => {
-      setTimeout(() => navigate('/history'), 2000);
-    });
-  }, [stopListening, stopSpeaking, speak, navigate]);
+    navigate('/history', { replace: true });
+  }, [stopAll, navigate]);
 
   const progress = questions.length ? Math.round(((currentIndex) / questions.length) * 100) : 0;
 

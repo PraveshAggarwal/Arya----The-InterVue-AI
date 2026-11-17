@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 export const useSpeech = () => {
   const [speaking, setSpeaking] = useState(false);
@@ -74,5 +74,31 @@ export const useSpeech = () => {
     setListening(false);
   }, []);
 
-  return { speaking, listening, transcript, speak, stopSpeaking, listen, stopListening };
+  const stopAll = useCallback(() => {
+    const recognition = recognitionRef.current;
+    if (recognition) {
+      recognition.onresult = null;
+      recognition.onend = null;
+      recognition.onerror = null;
+      try { recognition.abort(); } catch { /* Recognition may already be stopped. */ }
+      recognitionRef.current = null;
+    }
+    synth.cancel();
+    setListening(false);
+    setSpeaking(false);
+  }, [synth]);
+
+  useEffect(() => () => {
+    const recognition = recognitionRef.current;
+    if (recognition) {
+      recognition.onresult = null;
+      recognition.onend = null;
+      recognition.onerror = null;
+      try { recognition.abort(); } catch { /* Recognition may already be stopped. */ }
+      recognitionRef.current = null;
+    }
+    synth.cancel();
+  }, [synth]);
+
+  return { speaking, listening, transcript, speak, stopSpeaking, listen, stopListening, stopAll };
 };

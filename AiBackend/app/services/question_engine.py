@@ -1,5 +1,5 @@
 
-from app.services.gemini_service import generate_json
+from app.services.llm_service import generate_json
 
 
 async def generate_interview_plan(
@@ -40,7 +40,55 @@ Return ONLY this JSON:
 }}
 """
 
-    result = await generate_json(prompt)
+    result = await generate_json(
+        prompt,
+        {
+            "type": "object",
+            "properties": {
+                "questions": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "id": {"type": "string"},
+                            "question": {"type": "string"},
+                            "topic": {"type": "string"},
+                            "type": {
+                                "type": "string",
+                                "enum": [
+                                    "introduction",
+                                    "technical",
+                                    "scenario",
+                                    "problem_solving",
+                                    "project",
+                                    "behavioral",
+                                ],
+                            },
+                            "difficulty": {
+                                "type": "string",
+                                "enum": ["easy", "medium", "hard"],
+                            },
+                            "expected_points": {
+                                "type": "array",
+                                "items": {"type": "string"},
+                            },
+                        },
+                        "required": [
+                            "id",
+                            "question",
+                            "topic",
+                            "type",
+                            "difficulty",
+                            "expected_points",
+                        ],
+                        "additionalProperties": False,
+                    },
+                }
+            },
+            "required": ["questions"],
+            "additionalProperties": False,
+        },
+    )
 
     questions = result.get("questions")
 

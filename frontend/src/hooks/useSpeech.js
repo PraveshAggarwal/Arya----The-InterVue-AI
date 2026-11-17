@@ -5,19 +5,28 @@ export const useSpeech = () => {
   const [listening, setListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const recognitionRef = useRef(null);
+  const voicesRef = useRef([]);
   const synth = window.speechSynthesis;
+
+  useEffect(() => {
+    const loadVoices = () => { voicesRef.current = synth?.getVoices?.() || []; };
+    loadVoices();
+    synth?.addEventListener?.('voiceschanged', loadVoices);
+    return () => synth?.removeEventListener?.('voiceschanged', loadVoices);
+  }, [synth]);
 
   const speak = useCallback((text, onEnd) => {
     synth.cancel();
     const utter = new SpeechSynthesisUtterance(text);
-    utter.rate = 0.95;
-    utter.pitch = 1.05;
+    utter.rate = 0.9;
+    utter.pitch = 1;
     utter.volume = 1;
 
     const pickVoice = () => {
-      const voices = synth.getVoices();
+      const voices = voicesRef.current.length ? voicesRef.current : synth.getVoices();
       return (
-        voices.find((v) => v.lang.startsWith('en') && (v.name.includes('Google') || v.name.includes('Neural') || v.name.includes('Natural'))) ||
+        voices.find((v) => v.lang.startsWith('en') && /(Aria|Ava|Jenny|Sonia|Zira|Neural|Natural)/i.test(v.name)) ||
+        voices.find((v) => v.lang.startsWith('en') && /Google/i.test(v.name)) ||
         voices.find((v) => v.lang.startsWith('en'))
       );
     };

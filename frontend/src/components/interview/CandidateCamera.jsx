@@ -1,60 +1,27 @@
 import React, { useEffect, useRef } from 'react';
 import { VideoOff } from 'lucide-react';
 
-export const CandidateCamera = ({ active = true, onStream }) => {
+export const CandidateCamera = ({ stream }) => {
   const videoRef = useRef(null);
-  const streamRef = useRef(null);
 
   useEffect(() => {
-    if (!active) return;
-    let cancelled = false;
-    if (!navigator.mediaDevices?.getUserMedia) {
-      onStream?.(null);
-      return undefined;
-    }
-    navigator.mediaDevices
-      .getUserMedia({ video: { width: 640, height: 480, facingMode: 'user' }, audio: true })
-      .then((stream) => {
-        if (cancelled) {
-          stream.getTracks().forEach((track) => track.stop());
-          return;
-        }
-        streamRef.current = stream;
-        onStream?.(stream);
-        if (videoRef.current) videoRef.current.srcObject = stream;
-      })
-      .catch(() => {
-        if (!cancelled) onStream?.(null);
-      });
-
+    if (videoRef.current) videoRef.current.srcObject = stream || null;
     return () => {
-      cancelled = true;
-      streamRef.current?.getTracks().forEach((t) => t.stop());
-      streamRef.current = null;
-      onStream?.(null);
       if (videoRef.current) videoRef.current.srcObject = null;
     };
-  }, [active, onStream]);
+  }, [stream]);
 
   return (
     <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-[#080c16] border border-[#1b2640]">
-      {active ? (
-        <video
-          ref={videoRef}
-          autoPlay
-          muted
-          playsInline
-          className="w-full h-full object-cover scale-x-[-1]"
-        />
+      {stream ? (
+        <video ref={videoRef} autoPlay muted playsInline className="w-full h-full object-cover scale-x-[-1]" />
       ) : (
         <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-slate-500">
           <VideoOff className="w-8 h-8" />
-          <span className="text-xs">Camera off</span>
+          <span className="text-xs">Camera and microphone are required</span>
         </div>
       )}
-      <div className="absolute bottom-2 left-2 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-black/60 text-slate-300">
-        You
-      </div>
+      <div className="absolute bottom-2 left-2 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-black/60 text-slate-300">You</div>
     </div>
   );
 };

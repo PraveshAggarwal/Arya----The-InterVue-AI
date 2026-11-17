@@ -109,3 +109,18 @@ class NextQuestionResponse(BaseModel):
     topic: str
 
     reason: str
+
+
+class PerformanceReportRequest(BaseModel):
+    role: str
+    transcript: list[ConversationTurn] = Field(default_factory=list)
+
+
+class PerformanceReportResponse(BaseModel):
+    overallScore: int
+    summary: str
+    strengths: list[str]
+    weaknesses: list[str]
+    recommendations: list[str]
+    performance: dict[str, int]
+    questionReviews: list[dict]

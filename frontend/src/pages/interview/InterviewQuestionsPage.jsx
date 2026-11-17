@@ -22,7 +22,9 @@ export const InterviewQuestionsPage = () => {
   const [history, setHistory] = useState([]);
   const [followupCount, setFollowupCount] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState('');
-  const [cameraOn, setCameraOn] = useState(true);
+  const [mediaStream, setMediaStream] = useState(null);
+  const [requestingMedia, setRequestingMedia] = useState(false);
+  const [mediaPermissionError, setMediaPermissionError] = useState('');
   const [interviewLoaded, setInterviewLoaded] = useState(false);
   const [interviewStatus, setInterviewStatus] = useState('draft');
   const [recordingUrl, setRecordingUrl] = useState('');
@@ -81,6 +83,27 @@ export const InterviewQuestionsPage = () => {
     }
   }, []);
 
+  const requestMediaAccess = useCallback(async () => {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setMediaPermissionError('This browser does not support camera and microphone access.');
+      return;
+    }
+    setRequestingMedia(true);
+    setMediaPermissionError('');
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { width: 640, height: 480, facingMode: 'user' },
+        audio: true,
+      });
+      setMediaStream(stream);
+      handleMediaStream(stream);
+    } catch {
+      setMediaPermissionError('Camera and microphone permission is required before the interview can start.');
+    } finally {
+      setRequestingMedia(false);
+    }
+  }, [handleMediaStream]);
+
   const stopRecording = useCallback(() => new Promise((resolve) => {
     const recorder = mediaRecorderRef.current;
     if (!recorder || recorder.state === 'inactive') {
@@ -125,7 +148,7 @@ export const InterviewQuestionsPage = () => {
 
   // Start interview once questions are loaded
   useEffect(() => {
-    if (interviewLoaded && interviewStatus === 'draft' && questions.length && phase === PHASE.INTRO) {
+    if (interviewLoaded && interviewStatus === 'draft' && mediaStream && questions.length && phase === PHASE.INTRO) {
       const first = questions[0]?.questionText;
       if (first) {
         setCurrentQuestion(first);
@@ -138,7 +161,11 @@ export const InterviewQuestionsPage = () => {
         }, 800);
       }
     }
-  }, [questions, interviewLoaded, interviewStatus, role, speak]);
+  }, [questions, interviewLoaded, interviewStatus, mediaStream, role, speak]);
+
+  useEffect(() => () => {
+    mediaStream?.getTracks().forEach((track) => track.stop());
+  }, [mediaStream]);
 
   useEffect(() => () => {
     clearTimeout(questionStartTimerRef.current);
@@ -295,11 +322,11 @@ export const InterviewQuestionsPage = () => {
     setPhase(PHASE.DONE);
     setIsEnding(true);
     const recording = await stopRecording();
-    setCameraOn(false);
+    mediaStream?.getTracks().forEach((track) => track.stop());
     if (!recording) addToast('No recording was captured. This interview will still be marked complete.', 'warning');
     await saveEndedInterview(recording, finalRemarks);
     setIsEnding(false);
-  }, [stopAll, stopRecording, saveEndedInterview, addToast, remarks]);
+  }, [stopAll, stopRecording, saveEndedInterview, addToast, remarks, mediaStream]);
 
   const progress = questions.length ? Math.round(((currentIndex) / questions.length) * 100) : 0;
 
@@ -333,6 +360,22 @@ export const InterviewQuestionsPage = () => {
 
   if (interviewStatus === 'unavailable') {
     return <div className="max-w-3xl mx-auto p-8 text-center text-slate-300">Could not load this interview. Return to history and try again.</div>;
+  }
+
+  if (!mediaStream) {
+    return (
+      <div className="min-h-screen bg-[#07090e] flex items-center justify-center p-6">
+        <div className="w-full max-w-md rounded-3xl border border-sky-500/20 bg-[#0d1526] p-8 text-center shadow-2xl shadow-sky-950/30">
+          <AIAvatar />
+          <h1 className="mt-8 text-2xl font-black text-white">Ready to meet Arya?</h1>
+          <p className="mt-3 text-sm leading-relaxed text-slate-400">Enable your camera and microphone to begin the interview. Arya will not start until both permissions are granted.</p>
+          {mediaPermissionError && <p className="mt-4 rounded-xl bg-rose-500/10 p-3 text-xs text-rose-300">{mediaPermissionError}</p>}
+          <button onClick={requestMediaAccess} disabled={requestingMedia} className="mt-6 w-full rounded-xl bg-gradient-to-r from-blue-600 to-sky-500 px-5 py-3 font-bold text-white disabled:opacity-60">
+            {requestingMedia ? 'Requesting permission…' : 'Enable camera and microphone'}
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -382,7 +425,7 @@ export const InterviewQuestionsPage = () => {
         <div className="w-full lg:w-80 flex flex-col gap-4 p-4 bg-[#080c16] border-l border-[#141d33]">
 
           {/* Webcam */}
-          <CandidateCamera active={cameraOn && interviewStatus === 'draft'} onStream={handleMediaStream} />
+          <CandidateCamera stream={mediaStream} />
 
           {/* Live transcript */}
           <div className="flex-1 bg-[#0a0f1d] border border-[#1b2640] rounded-2xl p-4 min-h-[120px]">

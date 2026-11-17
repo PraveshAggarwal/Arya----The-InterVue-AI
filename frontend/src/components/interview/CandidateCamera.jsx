@@ -1,32 +1,40 @@
 import React, { useEffect, useRef } from 'react';
 import { VideoOff } from 'lucide-react';
 
-export const CandidateCamera = ({ active = true }) => {
+export const CandidateCamera = ({ active = true, onStream }) => {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
 
   useEffect(() => {
     if (!active) return;
     let cancelled = false;
+    if (!navigator.mediaDevices?.getUserMedia) {
+      onStream?.(null);
+      return undefined;
+    }
     navigator.mediaDevices
-      .getUserMedia({ video: { width: 640, height: 480, facingMode: 'user' }, audio: false })
+      .getUserMedia({ video: { width: 640, height: 480, facingMode: 'user' }, audio: true })
       .then((stream) => {
         if (cancelled) {
           stream.getTracks().forEach((track) => track.stop());
           return;
         }
         streamRef.current = stream;
+        onStream?.(stream);
         if (videoRef.current) videoRef.current.srcObject = stream;
       })
-      .catch(() => {});
+      .catch(() => {
+        if (!cancelled) onStream?.(null);
+      });
 
     return () => {
       cancelled = true;
       streamRef.current?.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
+      onStream?.(null);
       if (videoRef.current) videoRef.current.srcObject = null;
     };
-  }, [active]);
+  }, [active, onStream]);
 
   return (
     <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-[#080c16] border border-[#1b2640]">

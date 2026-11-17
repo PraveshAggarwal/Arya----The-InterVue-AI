@@ -46,6 +46,8 @@ export const interviewService = {
   create: (data) => api.post('/interviews', data),
   getAll: () => api.get('/interviews'),
   getById: (id) => api.get(`/interviews/${id}`),
+  complete: (id, formData) => api.post(`/interviews/${id}/complete`, formData, { timeout: 300000, headers: { 'Content-Type': 'multipart/form-data' } }),
+  getRecording: (id) => api.get(`/interviews/${id}/recording`, { responseType: 'blob' }),
   nextQuestion: (id, data) => api.post(`/interviews/${id}/next-question`, data),
 };
 

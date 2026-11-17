@@ -1,13 +1,22 @@
 const express = require("express");
 const router = express.Router();
 const { protect } = require("../middleware/authMiddleware");
-const { createInterview, getMyInterviews, getInterviewById } = require("../controllers/interviewController");
+const {
+  createInterview,
+  getMyInterviews,
+  getInterviewById,
+  completeInterview,
+  getInterviewRecording,
+} = require("../controllers/interviewController");
 const { generateNextQuestion } = require("../services/aiService");
+const recordingUpload = require("../middleware/recordingUploadMiddleware");
 
 router.use(protect);
 
 router.post("/", createInterview);
 router.get("/", getMyInterviews);
+router.post("/:id/complete", recordingUpload.single("recording"), completeInterview);
+router.get("/:id/recording", getInterviewRecording);
 router.get("/:id", getInterviewById);
 
 // Proxy next-question to Python AI

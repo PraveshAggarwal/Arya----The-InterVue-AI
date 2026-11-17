@@ -72,9 +72,30 @@ const interviewSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["draft"],
+      enum: ["draft", "completed"],
       default: "draft",
       index: true,
+    },
+
+    recordingPath: {
+      type: String,
+      default: "",
+      select: false,
+    },
+
+    recordingMimeType: {
+      type: String,
+      default: "",
+    },
+
+    hasRecording: {
+      type: Boolean,
+      default: false,
+    },
+
+    completedAt: {
+      type: Date,
+      default: null,
     },
   },
   { timestamps: true },

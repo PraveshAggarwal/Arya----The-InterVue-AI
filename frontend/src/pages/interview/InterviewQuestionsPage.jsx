@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Mic, MicOff, SkipForward, StopCircle, ChevronRight } from 'lucide-react';
+import { Mic, SkipForward, StopCircle, ChevronRight, PlayCircle } from 'lucide-react';
 import { AIAvatar } from '../../components/interview/AIAvatar';
 import { CandidateCamera } from '../../components/interview/CandidateCamera';
 import { useSpeech } from '../../hooks/useSpeech';
+import { useToast } from '../../context/ToastContext';
 import { interviewService, questionService } from '../../services/api';
 
 const PHASE = { INTRO: 'intro', SPEAKING: 'speaking', LISTENING: 'listening', THINKING: 'thinking', DONE: 'done' };
@@ -22,36 +23,109 @@ export const InterviewQuestionsPage = () => {
   const [followupCount, setFollowupCount] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState('');
   const [cameraOn, setCameraOn] = useState(true);
+  const [interviewLoaded, setInterviewLoaded] = useState(false);
+  const [interviewStatus, setInterviewStatus] = useState('draft');
+  const [recordingUrl, setRecordingUrl] = useState('');
+  const [recordingLoading, setRecordingLoading] = useState(false);
+  const [isEnding, setIsEnding] = useState(false);
+  const [endError, setEndError] = useState('');
 
   const { speaking, listening, transcript, speak, stopSpeaking, listen, stopListening, stopAll } = useSpeech();
+  const { addToast } = useToast();
 
   const answerRef = useRef('');
   const phaseRef = useRef(phase);
   const endedRef = useRef(false);
   const questionStartTimerRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const recordingChunksRef = useRef([]);
+  const recordingBlobRef = useRef(null);
   phaseRef.current = phase;
+
+  const handleMediaStream = useCallback((stream) => {
+    if (!stream) return;
+    if (endedRef.current) {
+      stream.getTracks().forEach((track) => track.stop());
+      return;
+    }
+    if (!window.MediaRecorder) {
+      setEndError('Recording is not supported by this browser.');
+      return;
+    }
+
+    const mimeType = MediaRecorder.isTypeSupported
+      ? ['video/webm;codecs=vp8,opus', 'video/webm', 'video/mp4'].find((type) => MediaRecorder.isTypeSupported(type))
+      : undefined;
+    try {
+      const recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+      recordingChunksRef.current = [];
+      recorder.ondataavailable = (event) => {
+        if (event.data?.size) recordingChunksRef.current.push(event.data);
+      };
+      recorder.onstop = () => {
+        const type = recorder.mimeType || recordingChunksRef.current[0]?.type || 'video/webm';
+        const blob = new Blob(recordingChunksRef.current, { type });
+        recordingBlobRef.current = blob.size ? blob : null;
+        mediaRecorderRef.current = null;
+      };
+      mediaRecorderRef.current = recorder;
+      recorder.start(1000);
+    } catch {
+      setEndError('Could not start recording in this browser.');
+    }
+  }, []);
+
+  const stopRecording = useCallback(() => new Promise((resolve) => {
+    const recorder = mediaRecorderRef.current;
+    if (!recorder || recorder.state === 'inactive') {
+      resolve(recordingBlobRef.current);
+      return;
+    }
+    recorder.addEventListener('stop', () => resolve(recordingBlobRef.current), { once: true });
+    recorder.stop();
+  }), []);
 
   // Load questions if not passed via state
   useEffect(() => {
     Promise.all([questionService.getAll(id), interviewService.getById(id)])
-      .then(([q, i]) => {
+      .then(async ([q, i]) => {
         const qs = q.data?.questions || [];
         if (qs.length) setQuestions(qs);
         setRole(i.data?.jobRole || 'Interview');
+        setInterviewStatus(i.data?.status || 'draft');
+        setInterviewLoaded(true);
+        if (i.data?.status === 'completed' && i.data?.hasRecording) {
+          setRecordingLoading(true);
+          try {
+            const { data: blob } = await interviewService.getRecording(id);
+            setRecordingUrl(URL.createObjectURL(blob));
+          } catch {
+            addToast('The interview is complete, but its recording could not be loaded.', 'error');
+          } finally {
+            setRecordingLoading(false);
+          }
+        }
       })
-      .catch(() => {});
-  }, [id]);
+      .catch(() => {
+        setInterviewStatus('unavailable');
+        setInterviewLoaded(true);
+      });
+  }, [id, addToast]);
+
+  useEffect(() => () => {
+    if (recordingUrl) URL.revokeObjectURL(recordingUrl);
+  }, [recordingUrl]);
 
   // Start interview once questions are loaded
   useEffect(() => {
-    if (questions.length && phase === PHASE.INTRO) {
+    if (interviewLoaded && interviewStatus === 'draft' && questions.length && phase === PHASE.INTRO) {
       const first = questions[0]?.questionText;
       if (first) {
         setCurrentQuestion(first);
         questionStartTimerRef.current = setTimeout(() => askQuestion(first), 800);
       }
     }
-  }, [questions]);
+  }, [questions, interviewLoaded, interviewStatus]);
 
   useEffect(() => () => clearTimeout(questionStartTimerRef.current), []);
 
@@ -151,18 +225,82 @@ export const InterviewQuestionsPage = () => {
     }
   }, [currentIndex, questions, askQuestion, stopListening, stopSpeaking]);
 
-  const finishInterview = useCallback(() => {
+  const saveEndedInterview = useCallback(async (blob) => {
+    const form = new FormData();
+    if (blob?.size) {
+      const extension = blob.type.includes('mp4') ? 'mp4' : 'webm';
+      const mimeType = extension === 'mp4' ? 'video/mp4' : 'video/webm';
+      const recording = new File([blob], `interview-${id}.${extension}`, { type: mimeType });
+      form.append('recording', recording);
+    }
+    try {
+      await interviewService.complete(id, form);
+      setInterviewStatus('completed');
+      setEndError('');
+      navigate('/history', { replace: true });
+    } catch (error) {
+      try {
+        const current = await interviewService.getById(id);
+        if (current.data?.status === 'completed') {
+          setInterviewStatus('completed');
+          setEndError('');
+          navigate('/history', { replace: true });
+          return;
+        }
+      } catch {
+        // Show the original save error and let the candidate retry.
+      }
+      setEndError(error.response?.data?.message || 'Could not save the completed interview. Retry to finish saving it.');
+    }
+  }, [id, navigate]);
+
+  const finishInterview = useCallback(async () => {
     if (endedRef.current) return;
     endedRef.current = true;
     clearTimeout(questionStartTimerRef.current);
     stopAll();
-    setCameraOn(false);
     setLiveTranscript('');
     setPhase(PHASE.DONE);
-    navigate('/history', { replace: true });
-  }, [stopAll, navigate]);
+    setIsEnding(true);
+    const recording = await stopRecording();
+    setCameraOn(false);
+    if (!recording) addToast('No recording was captured. This interview will still be marked complete.', 'warning');
+    await saveEndedInterview(recording);
+    setIsEnding(false);
+  }, [stopAll, stopRecording, saveEndedInterview, addToast]);
 
   const progress = questions.length ? Math.round(((currentIndex) / questions.length) * 100) : 0;
+
+  if (!interviewLoaded) {
+    return <div className="min-h-screen flex items-center justify-center bg-[#07090e] text-sm text-slate-400">Loading interview...</div>;
+  }
+
+  if (interviewStatus === 'completed') {
+    return (
+      <div className="max-w-4xl mx-auto p-6 space-y-5">
+        <div>
+          <p className="text-xs uppercase tracking-wider text-emerald-400">Interview completed</p>
+          <h1 className="text-3xl font-black text-white mt-1">{role}</h1>
+          <p className="text-sm text-slate-400 mt-2">This interview has ended and cannot be restarted. You can watch its recording below.</p>
+        </div>
+        {recordingLoading ? (
+          <div className="rounded-2xl border border-[#1b2640] bg-[#0a0f1d] p-8 text-center text-sm text-slate-400">Loading recording...</div>
+        ) : recordingUrl ? (
+          <video className="w-full rounded-2xl bg-black" src={recordingUrl} controls playsInline />
+        ) : (
+          <div className="rounded-2xl border border-[#1b2640] bg-[#0a0f1d] p-8 text-center text-sm text-slate-400">
+            <PlayCircle className="w-8 h-8 mx-auto mb-3 text-slate-500" />
+            No recording is available for this interview.
+          </div>
+        )}
+        <button onClick={() => navigate('/history')} className="px-5 py-3 rounded-xl bg-blue-600 text-white font-semibold">Back to history</button>
+      </div>
+    );
+  }
+
+  if (interviewStatus === 'unavailable') {
+    return <div className="max-w-3xl mx-auto p-8 text-center text-slate-300">Could not load this interview. Return to history and try again.</div>;
+  }
 
   return (
     <div className="min-h-screen bg-[#07090e] flex flex-col">
@@ -214,15 +352,7 @@ export const InterviewQuestionsPage = () => {
         <div className="w-full lg:w-80 flex flex-col gap-4 p-4 bg-[#080c16] border-l border-[#141d33]">
 
           {/* Webcam */}
-          <CandidateCamera active={cameraOn} />
-
-          {/* Camera toggle */}
-          <button
-            onClick={() => setCameraOn((v) => !v)}
-            className="text-xs text-slate-400 hover:text-slate-200 transition-colors self-end"
-          >
-            {cameraOn ? 'Turn off camera' : 'Turn on camera'}
-          </button>
+          <CandidateCamera active={cameraOn && interviewStatus === 'draft'} onStream={handleMediaStream} />
 
           {/* Live transcript */}
           <div className="flex-1 bg-[#0a0f1d] border border-[#1b2640] rounded-2xl p-4 min-h-[120px]">
@@ -283,8 +413,13 @@ export const InterviewQuestionsPage = () => {
             )}
 
             {phase === PHASE.DONE && (
-              <div className="text-center text-sm text-emerald-400 font-semibold py-3">
-                ✓ Interview Complete
+              <div className="space-y-3 text-center">
+                <p className="text-sm text-emerald-400 font-semibold py-3">Interview ended</p>
+                {isEnding && <p className="text-xs text-slate-400">Saving recording...</p>}
+                {endError && <>
+                  <p className="text-xs text-rose-400">{endError}</p>
+                  <button onClick={() => saveEndedInterview(recordingBlobRef.current)} className="w-full py-2.5 rounded-xl text-xs font-semibold text-white bg-blue-600">Retry save and finish</button>
+                </>}
               </div>
             )}
           </div>

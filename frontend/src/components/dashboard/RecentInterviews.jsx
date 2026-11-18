@@ -12,7 +12,7 @@ export const RecentInterviews = ({ interviews = [], compact = false }) => {
 
   const handleClick = (item) => {
     if (item.status === 'in_progress') navigate(`/interview/${item._id}`);
-    else if (item.status === 'completed') navigate(`/report/${item._id}`);
+    else if (item.status === 'completed') navigate(`/interview/${item._id}`);
   };
 
   const displayList = compact ? interviews.slice(0, 5) : interviews;

@@ -1,8 +1,55 @@
 from fastapi import APIRouter, HTTPException
-from app.schemas.interview import NextQuestionRequest
+from app.schemas.interview import NextQuestionRequest, PerformanceReportRequest
 from app.services.llm_service import generate_json
 
 router = APIRouter(prefix="/interview", tags=["Interview"])
+
+
+@router.post("/performance-report")
+async def performance_report(data: PerformanceReportRequest):
+    try:
+        transcript = "\n\n".join(
+            f"Question: {turn.question}\nCandidate answer: {turn.answer}"
+            for turn in data.transcript
+        ) or "No answers were captured."
+        prompt = f"""You are a fair, constructive interviewer evaluating a completed interview.
+
+ROLE: {data.role}
+TRANSCRIPT:
+{transcript[:18000]}
+
+Evaluate only what the candidate said. Give practical, specific feedback. Do not invent achievements.
+Return ONLY this JSON:
+{{
+  "overallScore": 0,
+  "summary": "2-3 sentence assessment",
+  "strengths": ["specific strength"],
+  "weaknesses": ["specific area to improve"],
+  "recommendations": ["actionable next step"],
+  "performance": {{"communication": 0, "technicalSkills": 0, "problemSolving": 0, "confidence": 0}},
+  "questionReviews": [{{"question": "exact question", "answer": "candidate answer", "score": 0, "feedback": "brief feedback"}}]
+}}
+All scores are integers from 0 to 100. Include one review per transcript turn."""
+        result = await generate_json(
+            prompt,
+            {
+                "type": "object",
+                "properties": {
+                    "overallScore": {"type": "integer", "minimum": 0, "maximum": 100},
+                    "summary": {"type": "string"},
+                    "strengths": {"type": "array", "items": {"type": "string"}},
+                    "weaknesses": {"type": "array", "items": {"type": "string"}},
+                    "recommendations": {"type": "array", "items": {"type": "string"}},
+                    "performance": {"type": "object", "properties": {"communication": {"type": "integer"}, "technicalSkills": {"type": "integer"}, "problemSolving": {"type": "integer"}, "confidence": {"type": "integer"}}, "required": ["communication", "technicalSkills", "problemSolving", "confidence"], "additionalProperties": False},
+                    "questionReviews": {"type": "array", "items": {"type": "object", "properties": {"question": {"type": "string"}, "answer": {"type": "string"}, "score": {"type": "integer", "minimum": 0, "maximum": 100}, "feedback": {"type": "string"}}, "required": ["question", "answer", "score", "feedback"], "additionalProperties": False}},
+                },
+                "required": ["overallScore", "summary", "strengths", "weaknesses", "recommendations", "performance", "questionReviews"],
+                "additionalProperties": False,
+            },
+        )
+        return {"success": True, "data": result}
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=str(e))
 
 
 @router.post("/next-question")

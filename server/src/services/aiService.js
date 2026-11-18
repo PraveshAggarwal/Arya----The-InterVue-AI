@@ -29,8 +29,14 @@ const generateNextQuestion = async (data) => {
   return response.data;
 };
 
+const generatePerformanceReport = async (data) => {
+  const response = await aiClient.post("/api/interview/performance-report", data);
+  return response.data;
+};
+
 module.exports = {
   parseResume,
   generateQuestions,
   generateNextQuestion,
+  generatePerformanceReport,
 };

@@ -106,6 +106,7 @@ export const InterviewHistoryPage = () => {
                       <span>{formatDate(item.createdAt)}</span>
                       <span>·</span>
                       <span>{item.questions?.length || 0} questions</span>
+                      {item.overallScore != null && <><span>Â·</span><span className="font-bold text-sky-400">{item.overallScore}/100</span></>}
                     </div>
                   </div>
                 </div>

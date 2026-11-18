@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Mic, StopCircle, PlayCircle } from 'lucide-react';
+import { Mic, StopCircle } from 'lucide-react';
 import { AIAvatar } from '../../components/interview/AIAvatar';
 import { CandidateCamera } from '../../components/interview/CandidateCamera';
+import { ScoreMetricsGrid } from '../../components/reports/ScoreMetricsGrid';
+import { QuestionReviewList } from '../../components/reports/QuestionReviewList';
 import { useSpeech } from '../../hooks/useSpeech';
-import { useToast } from '../../context/ToastContext';
 import { interviewService, questionService } from '../../services/api';
 
 const PHASE = { INTRO: 'intro', SPEAKING: 'speaking', LISTENING: 'listening', THINKING: 'thinking', DONE: 'done' };
@@ -27,15 +28,14 @@ export const InterviewQuestionsPage = () => {
   const [mediaPermissionError, setMediaPermissionError] = useState('');
   const [interviewLoaded, setInterviewLoaded] = useState(false);
   const [interviewStatus, setInterviewStatus] = useState('draft');
-  const [recordingUrl, setRecordingUrl] = useState('');
-  const [recordingLoading, setRecordingLoading] = useState(false);
   const [isEnding, setIsEnding] = useState(false);
   const [endError, setEndError] = useState('');
   const [remarks, setRemarks] = useState('');
   const [savedRemarks, setSavedRemarks] = useState('');
+  const [savedTranscript, setSavedTranscript] = useState([]);
+  const [report, setReport] = useState(null);
 
   const { speaking, listening, speak, listen, stopListening, stopAll } = useSpeech();
-  const { addToast } = useToast();
 
   const answerRef = useRef('');
   const phaseRef = useRef(phase);
@@ -45,43 +45,7 @@ export const InterviewQuestionsPage = () => {
   const submitAnswerRef = useRef(null);
   const processingRef = useRef(false);
   const noInputPromptedRef = useRef(false);
-  const mediaRecorderRef = useRef(null);
-  const recordingChunksRef = useRef([]);
-  const recordingBlobRef = useRef(null);
   phaseRef.current = phase;
-
-  const handleMediaStream = useCallback((stream) => {
-    if (!stream) return;
-    if (endedRef.current) {
-      stream.getTracks().forEach((track) => track.stop());
-      return;
-    }
-    if (!window.MediaRecorder) {
-      setEndError('Recording is not supported by this browser.');
-      return;
-    }
-
-    const mimeType = MediaRecorder.isTypeSupported
-      ? ['video/webm;codecs=vp8,opus', 'video/webm', 'video/mp4'].find((type) => MediaRecorder.isTypeSupported(type))
-      : undefined;
-    try {
-      const recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
-      recordingChunksRef.current = [];
-      recorder.ondataavailable = (event) => {
-        if (event.data?.size) recordingChunksRef.current.push(event.data);
-      };
-      recorder.onstop = () => {
-        const type = recorder.mimeType || recordingChunksRef.current[0]?.type || 'video/webm';
-        const blob = new Blob(recordingChunksRef.current, { type });
-        recordingBlobRef.current = blob.size ? blob : null;
-        mediaRecorderRef.current = null;
-      };
-      mediaRecorderRef.current = recorder;
-      recorder.start(1000);
-    } catch {
-      setEndError('Could not start recording in this browser.');
-    }
-  }, []);
 
   const requestMediaAccess = useCallback(async () => {
     if (!navigator.mediaDevices?.getUserMedia) {
@@ -96,23 +60,12 @@ export const InterviewQuestionsPage = () => {
         audio: true,
       });
       setMediaStream(stream);
-      handleMediaStream(stream);
     } catch {
       setMediaPermissionError('Camera and microphone permission is required before the interview can start.');
     } finally {
       setRequestingMedia(false);
     }
-  }, [handleMediaStream]);
-
-  const stopRecording = useCallback(() => new Promise((resolve) => {
-    const recorder = mediaRecorderRef.current;
-    if (!recorder || recorder.state === 'inactive') {
-      resolve(recordingBlobRef.current);
-      return;
-    }
-    recorder.addEventListener('stop', () => resolve(recordingBlobRef.current), { once: true });
-    recorder.stop();
-  }), []);
+  }, []);
 
   // Load questions if not passed via state
   useEffect(() => {
@@ -122,29 +75,16 @@ export const InterviewQuestionsPage = () => {
         if (qs.length) setQuestions(qs.slice(0, 1));
         setRole(i.data?.jobRole || 'Interview');
         setSavedRemarks(i.data?.remarks || '');
+        setSavedTranscript(i.data?.transcript || []);
+        setReport(i.data?.report || null);
         setInterviewStatus(i.data?.status || 'draft');
         setInterviewLoaded(true);
-        if (i.data?.status === 'completed' && i.data?.hasRecording) {
-          setRecordingLoading(true);
-          try {
-            const { data: blob } = await interviewService.getRecording(id);
-            setRecordingUrl(URL.createObjectURL(blob));
-          } catch {
-            addToast('The interview is complete, but its recording could not be loaded.', 'error');
-          } finally {
-            setRecordingLoading(false);
-          }
-        }
       })
       .catch(() => {
         setInterviewStatus('unavailable');
         setInterviewLoaded(true);
       });
-  }, [id, addToast]);
-
-  useEffect(() => () => {
-    if (recordingUrl) URL.revokeObjectURL(recordingUrl);
-  }, [recordingUrl]);
+  }, [id]);
 
   // Start interview once questions are loaded
   useEffect(() => {
@@ -245,7 +185,7 @@ export const InterviewQuestionsPage = () => {
       if (endedRef.current) return;
       if (next.action === 'complete') {
         setRemarks(next.remarks || 'Thank you for completing the interview. Your responses showed your current strengths and areas to keep developing.');
-        await finishInterview(next.remarks || 'Thank you for completing the interview. Your responses showed your current strengths and areas to keep developing.');
+        await finishInterview(next.remarks || 'Thank you for completing the interview. Your responses showed your current strengths and areas to keep developing.', newHistory);
         return;
       }
       const isFollowUp = next.action === 'follow_up';
@@ -282,27 +222,24 @@ export const InterviewQuestionsPage = () => {
 
   submitAnswerRef.current = submitAnswer;
 
-  const saveEndedInterview = useCallback(async (blob, finalRemarks = remarks) => {
-    const form = new FormData();
-    if (blob?.size) {
-      const extension = blob.type.includes('mp4') ? 'mp4' : 'webm';
-      const mimeType = extension === 'mp4' ? 'video/mp4' : 'video/webm';
-      const recording = new File([blob], `interview-${id}.${extension}`, { type: mimeType });
-      form.append('recording', recording);
-    }
-    form.append('remarks', finalRemarks || 'Thank you for completing the interview.');
+  const saveEndedInterview = useCallback(async (finalRemarks = remarks, transcript = history) => {
     try {
-      await interviewService.complete(id, form);
+      await interviewService.complete(id, { remarks: finalRemarks || 'Thank you for completing the interview.', transcript });
+      const refreshed = await interviewService.getById(id);
+      setSavedRemarks(refreshed.data?.remarks || finalRemarks || '');
+      setSavedTranscript(refreshed.data?.transcript || transcript);
+      setReport(refreshed.data?.report || null);
       setInterviewStatus('completed');
       setEndError('');
-      navigate(`/interview/${id}`, { replace: true });
     } catch (error) {
       try {
         const current = await interviewService.getById(id);
         if (current.data?.status === 'completed') {
           setInterviewStatus('completed');
           setEndError('');
-          navigate(`/interview/${id}`, { replace: true });
+          setSavedRemarks(current.data?.remarks || '');
+          setSavedTranscript(current.data?.transcript || []);
+          setReport(current.data?.report || null);
           return;
         }
       } catch {
@@ -310,9 +247,9 @@ export const InterviewQuestionsPage = () => {
       }
       setEndError(error.response?.data?.message || 'Could not save the completed interview. Retry to finish saving it.');
     }
-  }, [id, navigate, remarks]);
+  }, [id, navigate, remarks, history]);
 
-  const finishInterview = useCallback(async (finalRemarks = remarks) => {
+  const finishInterview = useCallback(async (finalRemarks = remarks, transcript = history) => {
     if (endedRef.current) return;
     endedRef.current = true;
     clearTimeout(questionStartTimerRef.current);
@@ -321,12 +258,10 @@ export const InterviewQuestionsPage = () => {
     setLiveTranscript('');
     setPhase(PHASE.DONE);
     setIsEnding(true);
-    const recording = await stopRecording();
     mediaStream?.getTracks().forEach((track) => track.stop());
-    if (!recording) addToast('No recording was captured. This interview will still be marked complete.', 'warning');
-    await saveEndedInterview(recording, finalRemarks);
+    await saveEndedInterview(finalRemarks, transcript);
     setIsEnding(false);
-  }, [stopAll, stopRecording, saveEndedInterview, addToast, remarks, mediaStream]);
+  }, [stopAll, saveEndedInterview, remarks, mediaStream, history]);
 
   const progress = questions.length ? Math.round(((currentIndex) / questions.length) * 100) : 0;
 
@@ -340,19 +275,11 @@ export const InterviewQuestionsPage = () => {
         <div>
           <p className="text-xs uppercase tracking-wider text-emerald-400">Interview completed</p>
           <h1 className="text-3xl font-black text-white mt-1">{role}</h1>
-          <p className="text-sm text-slate-400 mt-2">This interview has ended and cannot be restarted. You can watch its recording below.</p>
+          <p className="text-sm text-slate-400 mt-2">This interview has ended. Your transcript and AI performance assessment are available below.</p>
         </div>
         {savedRemarks && <div className="rounded-2xl border border-sky-500/20 bg-[#0d1526] p-5"><p className="text-xs uppercase tracking-wider text-sky-400 mb-2 font-semibold">Interview remarks</p><p className="text-sm text-slate-200 leading-relaxed">{savedRemarks}</p></div>}
-        {recordingLoading ? (
-          <div className="rounded-2xl border border-[#1b2640] bg-[#0a0f1d] p-8 text-center text-sm text-slate-400">Loading recording...</div>
-        ) : recordingUrl ? (
-          <video className="w-full rounded-2xl bg-black" src={recordingUrl} controls playsInline />
-        ) : (
-          <div className="rounded-2xl border border-[#1b2640] bg-[#0a0f1d] p-8 text-center text-sm text-slate-400">
-            <PlayCircle className="w-8 h-8 mx-auto mb-3 text-slate-500" />
-            No recording is available for this interview.
-          </div>
-        )}
+        {report && <ScoreMetricsGrid report={report} />}
+        <QuestionReviewList reviews={report?.questionReviews || savedTranscript} />
         <button onClick={() => navigate('/history')} className="px-5 py-3 rounded-xl bg-blue-600 text-white font-semibold">Back to history</button>
       </div>
     );
@@ -393,7 +320,7 @@ export const InterviewQuestionsPage = () => {
           />
         </div>
         <button
-          onClick={finishInterview}
+          onClick={() => finishInterview()}
           className="flex items-center gap-1.5 text-xs text-rose-400 hover:text-rose-300 border border-rose-500/30 hover:border-rose-400 px-3 py-1.5 rounded-lg transition-all"
         >
           <StopCircle className="w-3.5 h-3.5" />
@@ -468,10 +395,10 @@ export const InterviewQuestionsPage = () => {
             {phase === PHASE.DONE && (
               <div className="space-y-3 text-center">
                 <p className="text-sm text-emerald-400 font-semibold py-3">Interview ended</p>
-                {isEnding && <p className="text-xs text-slate-400">Saving recording...</p>}
+                {isEnding && <p className="text-xs text-slate-400">Saving transcript and generating your performance report...</p>}
                 {endError && <>
                   <p className="text-xs text-rose-400">{endError}</p>
-                  <button onClick={() => saveEndedInterview(recordingBlobRef.current)} className="w-full py-2.5 rounded-xl text-xs font-semibold text-white bg-blue-600">Retry save and finish</button>
+                  <button onClick={() => saveEndedInterview()} className="w-full py-2.5 rounded-xl text-xs font-semibold text-white bg-blue-600">Retry save and finish</button>
                 </>}
               </div>
             )}

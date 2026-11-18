@@ -53,6 +53,13 @@ const interviewSchema = new mongoose.Schema(
       trim: true,
     },
 
+    experienceYears: {
+      type: Number,
+      required: true,
+      min: 0,
+      max: 60,
+    },
+
     jobDescription: {
       type: String,
       default: "",
@@ -75,27 +82,28 @@ const interviewSchema = new mongoose.Schema(
       default: "",
     },
 
+    transcript: {
+      type: [{ question: { type: String, required: true }, answer: { type: String, required: true } }],
+      default: [],
+    },
+
+    report: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
+    },
+
+    overallScore: {
+      type: Number,
+      min: 0,
+      max: 100,
+      default: null,
+    },
+
     status: {
       type: String,
       enum: ["draft", "completed"],
       default: "draft",
       index: true,
-    },
-
-    recordingPath: {
-      type: String,
-      default: "",
-      select: false,
-    },
-
-    recordingMimeType: {
-      type: String,
-      default: "",
-    },
-
-    hasRecording: {
-      type: Boolean,
-      default: false,
     },
 
     completedAt: {

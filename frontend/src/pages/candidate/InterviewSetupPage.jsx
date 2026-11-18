@@ -12,6 +12,7 @@ export const InterviewSetupPage = () => {
   const [resumeId, setResumeId] = useState('');
   const [currentResume, setCurrentResume] = useState(null);
   const [jobRole, setJobRole] = useState('');
+  const [experienceYears, setExperienceYears] = useState('');
   const [jobDescription, setJobDescription] = useState('');
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -43,16 +44,16 @@ export const InterviewSetupPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!resumeId || !jobRole.trim() || !jobDescription.trim()) return;
+    if (!resumeId || !jobRole.trim() || experienceYears === '') return;
     setLoading(true);
     try {
       const { data: interview } = await interviewService.create({
         resumeId,
         jobRole: jobRole.trim(),
+        experienceYears: Number(experienceYears),
         jobDescription: jobDescription.trim(),
       });
       const { data } = await questionService.generate(interview._id);
-      addToast('Interview questions generated!', 'success');
       navigate(`/interview/${interview._id}`, { state: { questions: data.questions } });
     } catch (error) {
       addToast(error.response?.data?.message || 'Could not generate questions.', 'error');
@@ -65,13 +66,14 @@ export const InterviewSetupPage = () => {
     <div className="max-w-3xl mx-auto space-y-6 animate-in fade-in duration-300">
       <header className="pb-4 border-b border-[#141d33]">
         <h1 className="text-2xl sm:text-3xl font-black text-white">Create an Interview</h1>
-        <p className="text-sm text-slate-400 mt-2">Upload your resume, enter a job title and description to generate tailored questions.</p>
+        <p className="text-sm text-slate-400 mt-2">Your resume, role, and experience shape the interview. Add a job description if you have one.</p>
       </header>
 
       <ResumeUploader
         onFileUpload={handleUpload}
         currentResume={currentResume}
         uploading={uploading}
+        required
       />
 
       <form onSubmit={handleSubmit} className="space-y-5">
@@ -79,7 +81,7 @@ export const InterviewSetupPage = () => {
           <label className="block text-sm font-bold text-white">
             <span className="flex items-center gap-2 mb-2">
               <Briefcase className="w-4 h-4 text-sky-400" />
-              Job Title
+              Role you applied for <span className="text-rose-400">*</span>
             </span>
             <input
               required
@@ -92,11 +94,28 @@ export const InterviewSetupPage = () => {
 
           <label className="block text-sm font-bold text-white">
             <span className="flex items-center gap-2 mb-2">
+              <Briefcase className="w-4 h-4 text-sky-400" />
+              Years of experience <span className="text-rose-400">*</span>
+            </span>
+            <input
+              required
+              type="number"
+              min="0"
+              max="60"
+              step="0.5"
+              value={experienceYears}
+              onChange={(e) => setExperienceYears(e.target.value)}
+              placeholder="e.g. 2"
+              className="w-full rounded-xl bg-[#090e1b] border border-[#1b2640] p-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-sky-400"
+            />
+          </label>
+
+          <label className="block text-sm font-bold text-white">
+            <span className="flex items-center gap-2 mb-2">
               <FileText className="w-4 h-4 text-sky-400" />
-              Job Description
+              Job Description <span className="text-xs font-normal text-slate-500">(optional)</span>
             </span>
             <textarea
-              required
               rows={7}
               value={jobDescription}
               onChange={(e) => setJobDescription(e.target.value)}
@@ -108,7 +127,7 @@ export const InterviewSetupPage = () => {
 
         <button
           type="submit"
-          disabled={loading || uploading || !resumeId}
+          disabled={loading || uploading || !resumeId || !jobRole.trim() || experienceYears === ''}
           className="w-full py-4 rounded-xl font-bold text-white bg-gradient-to-r from-blue-600 to-cyan-500 disabled:opacity-50 flex justify-center items-center gap-2"
         >
           {loading

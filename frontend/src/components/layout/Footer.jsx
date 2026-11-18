@@ -18,7 +18,7 @@ export const Footer = () => {
               <span className="font-bold text-base text-white tracking-tight">InterVue AI</span>
             </Link>
             <p className="text-slate-400 text-xs leading-relaxed max-w-sm">
-              Next-generation AI mock interview platform. Practice with interactive video avatars in real time, receive live vocal analysis, and get instant feedback on your resume and interview responses.
+              Next-generation AI mock interview platform. Practice with a human-like AI interviewer and receive feedback on your resume and interview responses.
             </p>
             <div className="flex items-center gap-3 pt-2">
               <a href="#" className="p-2 rounded-lg bg-[#0e1424] hover:bg-[#162038] text-slate-400 hover:text-white transition-colors" aria-label="Github">

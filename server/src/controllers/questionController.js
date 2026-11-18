@@ -63,10 +63,11 @@ const generateInterviewQuestions = async (req, res) => {
 
     const aiPayload = {
       role: interview.jobRole,
-      experience: "Mid Level",
+      experience: `${interview.experienceYears} years`,
       difficulty: "medium",
       total_questions: Math.min(Math.max(interview.totalQuestions, 5), 20),
       resume_text: resume.extractedText || "",
+      job_description: interview.jobDescription || "",
       skills: [],
     };
 

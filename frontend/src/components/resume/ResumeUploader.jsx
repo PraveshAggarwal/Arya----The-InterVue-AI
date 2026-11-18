@@ -3,7 +3,7 @@ import { Upload, FileText, CheckCircle2, Trash2, Loader2 } from 'lucide-react';
 import { Card } from '../common/Card';
 import { useToast } from '../../context/ToastContext';
 
-export const ResumeUploader = ({ onFileUpload, onDelete, currentResume, uploading }) => {
+export const ResumeUploader = ({ onFileUpload, onDelete, currentResume, uploading, required = false }) => {
   const { addToast } = useToast();
   const fileInputRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -32,7 +32,7 @@ export const ResumeUploader = ({ onFileUpload, onDelete, currentResume, uploadin
     <Card className="p-6">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-base font-bold text-white tracking-tight">Upload Resume</h3>
+          <h3 className="text-base font-bold text-white tracking-tight">Upload Resume {required && <span className="text-rose-400">*</span>}</h3>
           <p className="text-xs text-slate-400">Upload a PDF or DOCX resume to extract its text for interview questions</p>
         </div>
         <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20">

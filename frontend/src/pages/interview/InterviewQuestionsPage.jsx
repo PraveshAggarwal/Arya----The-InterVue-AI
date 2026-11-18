@@ -43,8 +43,10 @@ export const InterviewQuestionsPage = () => {
   const questionStartTimerRef = useRef(null);
   const silenceTimerRef = useRef(null);
   const submitAnswerRef = useRef(null);
+  const finishInterviewRef = useRef(null);
   const processingRef = useRef(false);
-  const noInputPromptedRef = useRef(false);
+  const noInputPromptedRef = useRef(0);
+  const turnRef = useRef(0);
   phaseRef.current = phase;
 
   const requestMediaAccess = useCallback(async () => {
@@ -72,7 +74,7 @@ export const InterviewQuestionsPage = () => {
     Promise.all([questionService.getAll(id), interviewService.getById(id)])
       .then(async ([q, i]) => {
         const qs = q.data?.questions || [];
-        if (qs.length) setQuestions(qs.slice(0, 1));
+        if (qs.length) setQuestions(qs);
         setRole(i.data?.jobRole || 'Interview');
         setSavedRemarks(i.data?.remarks || '');
         setSavedTranscript(i.data?.transcript || []);
@@ -95,7 +97,7 @@ export const InterviewQuestionsPage = () => {
         setPhase(PHASE.SPEAKING);
         questionStartTimerRef.current = setTimeout(() => {
           speak(
-            `Hi, this is Arya, your AI interviewer for the ${role} role you applied for.`,
+            `Hi, I'm Arya. Thanks for joining me today. We'll talk about your experience and the ${role} role. Take a moment to think before answering, and let me know if you'd like me to repeat a question.`,
             () => askQuestion(first),
           );
         }, 800);
@@ -112,47 +114,63 @@ export const InterviewQuestionsPage = () => {
     clearTimeout(silenceTimerRef.current);
   }, []);
 
-  const askQuestion = useCallback((text, repeated = false) => {
+  const askQuestion = useCallback((text, repeated = false, response = '') => {
     if (endedRef.current) return;
-    if (!repeated) noInputPromptedRef.current = false;
+    const turnId = ++turnRef.current;
+    noInputPromptedRef.current = 0;
+    clearTimeout(silenceTimerRef.current);
+    stopListening();
     setPhase(PHASE.SPEAKING);
     setLiveTranscript('');
     answerRef.current = '';
-    speak(text, () => {
-      if (phaseRef.current === PHASE.SPEAKING) startListening();
+    speak([response, text].filter(Boolean).join(' '), () => {
+      if (!endedRef.current && turnId === turnRef.current && phaseRef.current === PHASE.SPEAKING) {
+        startListening(turnId);
+      }
     });
-  }, [speak]);
+  }, [speak, stopListening]);
 
-  const startListening = useCallback(() => {
-    if (endedRef.current) return;
+  const startListening = useCallback((turnId) => {
+    if (endedRef.current || turnId !== turnRef.current) return;
     setPhase(PHASE.LISTENING);
     clearTimeout(silenceTimerRef.current);
+    // Ignore the short tail of Arya's own audio picked up by the microphone.
+    const acceptSpeechAfter = Date.now() + 800;
     silenceTimerRef.current = setTimeout(() => {
-      if (endedRef.current || answerRef.current.trim()) return;
-      stopListening();
-      if (noInputPromptedRef.current) {
+      if (endedRef.current || turnId !== turnRef.current || answerRef.current.trim()) return;
+      noInputPromptedRef.current += 1;
+      if (noInputPromptedRef.current > 1) {
         answerRef.current = '(no answer)';
         submitAnswerRef.current?.();
         return;
       }
-      noInputPromptedRef.current = true;
       setPhase(PHASE.SPEAKING);
-      speak(
-        `I did not receive any input from your side. I will repeat the question. ${currentQuestion}`,
-        () => startListening(),
-      );
-    }, 10000);
+      stopListening(() => {
+        if (endedRef.current || turnId !== turnRef.current) return;
+        speak(
+          `Take your time. There is no rush. Let me repeat the question: ${currentQuestion}`,
+          () => startListening(turnId),
+        );
+      });
+    }, 15000);
     listen(
       (interim) => {
+        if (endedRef.current || turnId !== turnRef.current || Date.now() < acceptSpeechAfter) return;
         setLiveTranscript(interim); answerRef.current = interim;
+        if (interim.trim()) noInputPromptedRef.current = 0;
         clearTimeout(silenceTimerRef.current);
-        if (interim.trim()) silenceTimerRef.current = setTimeout(() => submitAnswerRef.current?.(), 5000);
+        if (interim.trim()) silenceTimerRef.current = setTimeout(() => {
+          if (turnId === turnRef.current) submitAnswerRef.current?.();
+        }, 10000);
       },
       (final) => {
-        if (final) { answerRef.current = final; setLiveTranscript(final); }
+        if (endedRef.current || turnId !== turnRef.current || Date.now() < acceptSpeechAfter) return;
+        if (final) { answerRef.current = final; setLiveTranscript(final); if (final.trim()) noInputPromptedRef.current = 0; }
         if (final.trim()) {
           clearTimeout(silenceTimerRef.current);
-          silenceTimerRef.current = setTimeout(() => submitAnswerRef.current?.(), 5000);
+          silenceTimerRef.current = setTimeout(() => {
+            if (turnId === turnRef.current) submitAnswerRef.current?.();
+          }, 10000);
         }
       }
     );
@@ -176,7 +194,7 @@ export const InterviewQuestionsPage = () => {
         role,
         current_question: currentQuestion,
         current_answer: answer,
-        history: newHistory.slice(-4).map((h) => ({ question: h.question, answer: h.answer })),
+        history: newHistory.slice(-12).map((h) => ({ question: h.question, answer: h.answer })),
         remaining_topics: remainingTopics,
         followup_count: followupCount,
       });
@@ -185,15 +203,19 @@ export const InterviewQuestionsPage = () => {
       if (endedRef.current) return;
       if (next.action === 'complete') {
         setRemarks(next.remarks || 'Thank you for completing the interview. Your responses showed your current strengths and areas to keep developing.');
-        await finishInterview(next.remarks || 'Thank you for completing the interview. Your responses showed your current strengths and areas to keep developing.', newHistory);
+        const finalRemarks = next.remarks || 'Thank you for completing the interview. Your responses showed your current strengths and areas to keep developing.';
+        const closing = next.response || 'Thank you for sharing your experience with me. That concludes our interview.';
+        setPhase(PHASE.SPEAKING);
+        speak(closing, () => finishInterviewRef.current?.(finalRemarks, newHistory));
         return;
       }
-      const isFollowUp = next.action === 'follow_up';
+      const isFollowUp = next.action === 'follow_up' || next.action === 'clarify';
 
       if (isFollowUp) {
         setFollowupCount((c) => c + 1);
-        setCurrentQuestion(next.question);
-        askQuestion(next.question);
+        const followUpText = next.question || 'Could you tell me a little more about that and give a specific example?';
+        setCurrentQuestion(followUpText);
+        askQuestion(followUpText, false, next.response || 'Thanks for sharing that.');
       } else {
         const nextIndex = currentIndex + 1;
         setFollowupCount(0);
@@ -201,7 +223,7 @@ export const InterviewQuestionsPage = () => {
         const nextQ = next.question;
         setQuestions((existing) => [...existing, { questionText: nextQ, category: next.topic || 'General' }]);
         setCurrentQuestion(nextQ);
-        askQuestion(nextQ);
+        askQuestion(nextQ, false, next.response || 'Thank you.');
       }
     } catch {
       if (endedRef.current) return;
@@ -214,11 +236,11 @@ export const InterviewQuestionsPage = () => {
         setCurrentIndex(nextIndex);
         const nextQ = questions[nextIndex].questionText;
         setCurrentQuestion(nextQ);
-        askQuestion(nextQ);
+        askQuestion(nextQ, false, 'Thank you. Let’s move on to another question.');
       }
     }
     finally { processingRef.current = false; }
-  }, [currentQuestion, currentIndex, followupCount, history, questions, role, id, askQuestion, stopListening]);
+  }, [currentQuestion, currentIndex, followupCount, history, questions, role, id, askQuestion, stopListening, speak]);
 
   submitAnswerRef.current = submitAnswer;
 
@@ -262,6 +284,7 @@ export const InterviewQuestionsPage = () => {
     await saveEndedInterview(finalRemarks, transcript);
     setIsEnding(false);
   }, [stopAll, saveEndedInterview, remarks, mediaStream, history]);
+  finishInterviewRef.current = finishInterview;
 
   const progress = questions.length ? Math.round(((currentIndex) / questions.length) * 100) : 0;
 
@@ -297,7 +320,7 @@ export const InterviewQuestionsPage = () => {
           <h1 className="mt-8 text-2xl font-black text-white">Ready to meet Arya?</h1>
           <p className="mt-3 text-sm leading-relaxed text-slate-400">Enable your camera and microphone to begin the interview. Arya will not start until both permissions are granted.</p>
           {mediaPermissionError && <p className="mt-4 rounded-xl bg-rose-500/10 p-3 text-xs text-rose-300">{mediaPermissionError}</p>}
-          <button onClick={requestMediaAccess} disabled={requestingMedia} className="mt-6 w-full rounded-xl bg-gradient-to-r from-blue-600 to-sky-500 px-5 py-3 font-bold text-white disabled:opacity-60">
+          <button onClick={requestMediaAccess} disabled={requestingMedia} className="mt-6 w-full rounded-xl bg-linear-to-r from-blue-600 to-sky-500 px-5 py-3 font-bold text-white disabled:opacity-60">
             {requestingMedia ? 'Requesting permission…' : 'Enable camera and microphone'}
           </button>
         </div>
@@ -315,7 +338,7 @@ export const InterviewQuestionsPage = () => {
         {/* Progress bar */}
         <div className="flex-1 mx-8 h-1.5 bg-[#1b2640] rounded-full overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-blue-600 to-sky-400 rounded-full transition-all duration-500"
+            className="h-full bg-linear-to-r from-blue-600 to-sky-400 rounded-full transition-all duration-500"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -332,7 +355,7 @@ export const InterviewQuestionsPage = () => {
       <div className="flex-1 flex flex-col lg:flex-row gap-0">
 
         {/* Left — AI Avatar */}
-        <div className="flex-1 flex flex-col items-center justify-center gap-8 p-8 bg-gradient-to-b from-[#080c16] to-[#07090e]">
+        <div className="flex-1 flex flex-col items-center justify-center gap-8 p-8 bg-linear-to-b from-[#080c16] to-[#07090e]">
           <AIAvatar speaking={speaking} thinking={phase === PHASE.THINKING} />
 
           {/* Current question bubble */}
@@ -355,7 +378,7 @@ export const InterviewQuestionsPage = () => {
           <CandidateCamera stream={mediaStream} />
 
           {/* Live transcript */}
-          <div className="flex-1 bg-[#0a0f1d] border border-[#1b2640] rounded-2xl p-4 min-h-[120px]">
+          <div className="flex-1 bg-[#0a0f1d] border border-[#1b2640] rounded-2xl p-4 min-h-30">
             <p className="text-[10px] uppercase tracking-wider text-slate-500 mb-2 font-semibold">Your Answer</p>
             {listening && !liveTranscript && (
               <div className="flex items-center gap-2 text-sky-400">

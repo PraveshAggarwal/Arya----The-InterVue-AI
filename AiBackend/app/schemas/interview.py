@@ -82,6 +82,8 @@ class NextQuestionRequest(BaseModel):
 
     current_answer: str
 
+    resume_text: str = Field(default="", max_length=20000)
+
     history: list[ConversationTurn] = Field(
         default_factory=list
     )

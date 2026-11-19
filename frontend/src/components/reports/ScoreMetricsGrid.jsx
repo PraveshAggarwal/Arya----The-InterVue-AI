@@ -1,14 +1,14 @@
 import React from 'react';
 import { Card } from '../common/Card';
 import { ScoreRing } from '../common/ScoreRing';
-import { MessageSquare, Cpu, Shield, Brain } from 'lucide-react';
+import { MessageSquare, BriefcaseBusiness, Shield, Brain } from 'lucide-react';
 
 export const ScoreMetricsGrid = ({ report }) => {
   const perf = report?.performance || {};
 
   const metricCards = [
     { title: 'Communication', value: perf.communication ?? '—', icon: MessageSquare, desc: 'Rhythm, clarity and pacing', color: 'text-sky-400' },
-    { title: 'Technical Skills', value: perf.technicalSkills ?? '—', icon: Cpu, desc: 'Architecture & trade-offs', color: 'text-blue-400' },
+    { title: 'Role Skills', value: perf.technicalSkills ?? '—', icon: BriefcaseBusiness, desc: 'Craft & role-specific judgment', color: 'text-blue-400' },
     { title: 'Problem Solving', value: perf.problemSolving ?? '—', icon: Brain, desc: 'Analytical structured logic', color: 'text-emerald-400' },
     { title: 'Confidence', value: perf.confidence ?? '—', icon: Shield, desc: 'Presence & assertiveness', color: 'text-indigo-400' },
   ];

@@ -55,7 +55,7 @@ export const DashboardPage = () => {
               {fullyCompletedInterviews.length > 0
                 ? <>You have completed <strong className="text-white">{fullyCompletedInterviews.length} full mock interviews</strong>{avgScore != null && <> with an average score of <strong className="text-sky-400">{avgScore} points</strong></>}.</>
                 : startedInterviews.length > 0
-                  ? <>You have started <strong className="text-white">{startedInterviews.length} interview sessions</strong>. Complete all 15 main questions for a full completion.</>
+                  ? <>You have started <strong className="text-white">{startedInterviews.length} interview sessions</strong>. Complete all questions for a full completion.</>
                   : 'Start your first mock interview to begin tracking your progress.'}
             </p>
           </div>
@@ -72,7 +72,7 @@ export const DashboardPage = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
         <StatCard title="Total Interviews" value={loading ? '—' : totalInterviews} change={`${startedInterviews.length} started`} icon={Video} accentColor="text-sky-400" bgGradient="from-sky-500/20 to-transparent" />
         <StatCard title="Average Score" value={loading ? '—' : avgScore == null ? '—' : `${avgScore}%`} change={scoredInterviews.length ? `${scoredInterviews.length} scored sessions` : 'No scores yet'} icon={Award} accentColor="text-emerald-400" bgGradient="from-emerald-500/20 to-transparent" />
-        <StatCard title="Practice Hours" value={loading ? '—' : `${practiceHours.toFixed(2)}h`} change={`${sessionsWithDuration} sessions with saved time`} icon={Clock} accentColor="text-blue-400" bgGradient="from-blue-600/20 to-transparent" />
+        <StatCard title="Practice Hours" value={loading ? '—' : `${practiceHours.toFixed(2)}h`} change={`${sessionsWithDuration} sessions with saved time`} icon={Clock} accentColor="text-emerald-400" bgGradient="from-emerald-500/20 to-transparent" />
         <StatCard title="Completion Rate" value={loading ? '—' : completionRate == null ? '—' : `${completionRate}%`} change={`${fullyCompletedInterviews.length} full / ${startedInterviews.length} started`} icon={TrendingUp} accentColor="text-cyan-400" bgGradient="from-cyan-500/20 to-transparent" />
       </div>
 

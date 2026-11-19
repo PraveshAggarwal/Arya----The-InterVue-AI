@@ -105,3 +105,255 @@
 .animate-pulse-subtle {
   animation: pulse-ring 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
+
+/* Day palette for the signed-in workspace and interview report. */
+html[data-theme="day"] .app-shell,
+html[data-theme="day"] .interview-theme {
+  background-color: #f7f6f2 !important;
+  color: #254534 !important;
+}
+
+html[data-theme="day"] .app-shell [class*="bg-[#0"],
+html[data-theme="day"] .app-shell [class*="bg-[#1"],
+html[data-theme="day"] .interview-theme [class*="bg-[#0"],
+html[data-theme="day"] .interview-theme [class*="bg-[#1"],
+html[data-theme="day"] .landing-theme [class*="bg-[#0"],
+html[data-theme="day"] .landing-theme [class*="bg-[#1"] {
+  background-color: #ffffff !important;
+}
+
+html[data-theme="day"] .landing-theme [class*="bg-[#1f6447"] {
+  background-color: #1f6447 !important;
+}
+
+html[data-theme="day"] .landing-theme [class*="bg-[#214c39"],
+html[data-theme="day"] .landing-theme [class*="bg-[#183b2c"] {
+  background-color: #214c39 !important;
+}
+
+html[data-theme="day"] .app-shell [class*="hover:bg-[#"]:hover,
+html[data-theme="day"] .interview-theme [class*="hover:bg-[#"]:hover {
+  background-color: #edf4ed !important;
+}
+
+html[data-theme="day"] .app-shell [class*="from-[#0"],
+html[data-theme="day"] .app-shell [class*="via-[#0"],
+html[data-theme="day"] .app-shell [class*="to-[#0"],
+html[data-theme="day"] .interview-theme [class*="from-[#0"],
+html[data-theme="day"] .interview-theme [class*="via-[#0"],
+html[data-theme="day"] .interview-theme [class*="to-[#0"] {
+  --tw-gradient-from: #edf3ec !important;
+  --tw-gradient-via: #f7f6f2 !important;
+  --tw-gradient-to: #f7f6f2 !important;
+}
+
+html[data-theme="day"] .app-shell [class*="border-[#"],
+html[data-theme="day"] .interview-theme [class*="border-[#"],
+html[data-theme="day"] .landing-theme [class*="border-[#"] {
+  border-color: #dfe8df !important;
+}
+
+html[data-theme="day"] .app-shell .text-white,
+html[data-theme="day"] .app-shell .text-slate-100,
+html[data-theme="day"] .app-shell .text-slate-200,
+html[data-theme="day"] .app-shell .text-slate-300,
+html[data-theme="day"] .interview-theme .text-white,
+html[data-theme="day"] .interview-theme .text-slate-100,
+html[data-theme="day"] .interview-theme .text-slate-200,
+html[data-theme="day"] .interview-theme .text-slate-300 {
+  color: #294737 !important;
+}
+
+html[data-theme="day"] .app-shell .text-slate-400,
+html[data-theme="day"] .app-shell .text-slate-500,
+html[data-theme="day"] .app-shell .text-slate-600,
+html[data-theme="day"] .interview-theme .text-slate-400,
+html[data-theme="day"] .interview-theme .text-slate-500,
+html[data-theme="day"] .interview-theme .text-slate-600,
+html[data-theme="day"] .landing-theme .text-slate-400,
+html[data-theme="day"] .landing-theme .text-slate-500,
+html[data-theme="day"] .landing-theme .text-slate-600 {
+  color: #6d7c71 !important;
+}
+
+html[data-theme="day"] .app-shell [class*="placeholder-slate-"]::placeholder,
+html[data-theme="day"] .interview-theme [class*="placeholder-slate-"]::placeholder {
+  color: #7b897f !important;
+  opacity: 1 !important;
+}
+
+html[data-theme="day"] .app-shell button.text-white,
+html[data-theme="day"] .app-shell a.text-white,
+html[data-theme="day"] .app-shell [class*="bg-gradient"].text-white,
+html[data-theme="day"] .interview-theme button.text-white,
+html[data-theme="day"] .interview-theme a.text-white,
+html[data-theme="day"] .interview-theme [class*="bg-gradient"].text-white {
+  color: #ffffff !important;
+}
+
+html[data-theme="day"] .app-shell .text-sky-300,
+html[data-theme="day"] .app-shell .text-sky-400,
+html[data-theme="day"] .app-shell .text-blue-400,
+html[data-theme="day"] .interview-theme .text-sky-300,
+html[data-theme="day"] .interview-theme .text-sky-400,
+html[data-theme="day"] .interview-theme .text-blue-400 {
+  color: #347354 !important;
+}
+
+html[data-theme="day"] .app-shell .text-indigo-400,
+html[data-theme="day"] .app-shell .text-cyan-400,
+html[data-theme="day"] .interview-theme .text-indigo-400,
+html[data-theme="day"] .interview-theme .text-cyan-400 {
+  color: #438062 !important;
+}
+
+html[data-theme="day"] .app-shell .text-violet-300,
+html[data-theme="day"] .app-shell .text-violet-400,
+html[data-theme="day"] .interview-theme .text-violet-300,
+html[data-theme="day"] .interview-theme .text-violet-400 {
+  color: #6d28d9 !important;
+}
+
+html[data-theme="day"] .app-shell .text-amber-300,
+html[data-theme="day"] .app-shell .text-amber-400,
+html[data-theme="day"] .interview-theme .text-amber-300,
+html[data-theme="day"] .interview-theme .text-amber-400 {
+  color: #92400e !important;
+}
+
+html[data-theme="day"] .app-shell .text-rose-300,
+html[data-theme="day"] .app-shell .text-rose-400,
+html[data-theme="day"] .interview-theme .text-rose-300,
+html[data-theme="day"] .interview-theme .text-rose-400 {
+  color: #b91c1c !important;
+}
+
+html[data-theme="day"] .app-shell .text-emerald-300,
+html[data-theme="day"] .app-shell .text-emerald-400,
+html[data-theme="day"] .interview-theme .text-emerald-300,
+html[data-theme="day"] .interview-theme .text-emerald-400 {
+  color: #166534 !important;
+}
+
+html[data-theme="day"] .app-shell .status-draft {
+  background-color: #fef3c7 !important;
+  border-color: #fcd34d !important;
+  color: #92400e !important;
+}
+
+html[data-theme="day"] .app-shell .status-completed {
+  background-color: #dcfce7 !important;
+  border-color: #86efac !important;
+  color: #166534 !important;
+}
+
+html[data-theme="day"] .app-shell [class*="border-sky-"],
+html[data-theme="day"] .app-shell [class*="border-blue-"],
+html[data-theme="day"] .interview-theme [class*="border-sky-"],
+html[data-theme="day"] .interview-theme [class*="border-blue-"] {
+  border-color: #c8deca !important;
+}
+
+html[data-theme="day"] .app-shell [class*="bg-blue-600/"],
+html[data-theme="day"] .app-shell [class*="bg-sky-500/"],
+html[data-theme="day"] .interview-theme [class*="bg-blue-600/"],
+html[data-theme="day"] .interview-theme [class*="bg-sky-500/"] {
+  background-color: #e7f1e8 !important;
+}
+
+html[data-theme="day"] .app-shell .keyword-title,
+html[data-theme="day"] .app-shell .keyword-count,
+html[data-theme="day"] .app-shell .keyword-text {
+  color: #17251f !important;
+}
+
+html[data-theme="day"] .landing-theme .text-white:not(.theme-preserve-white),
+html[data-theme="day"] .landing-theme .text-slate-100,
+html[data-theme="day"] .landing-theme .text-slate-200,
+html[data-theme="day"] .landing-theme .text-slate-300 {
+  color: #294737 !important;
+}
+
+html[data-theme="day"] .landing-theme button.text-white:not(.theme-preserve-white),
+html[data-theme="day"] .landing-theme a.text-white:not(.theme-preserve-white),
+html[data-theme="day"] .landing-theme [class*="bg-[#214c39"]].text-white,
+html[data-theme="day"] .landing-theme [class*="bg-[#1f6447"]].text-white {
+  color: #ffffff !important;
+}
+
+html[data-theme="day"] .app-shell .bg-blue-600,
+html[data-theme="day"] .app-shell .hover\:bg-blue-500:hover,
+html[data-theme="day"] .interview-theme .bg-blue-600,
+html[data-theme="day"] .interview-theme .hover\:bg-blue-500:hover {
+  background-color: #1f6447 !important;
+}
+
+html[data-theme="day"] .app-shell [class*="from-blue-600"],
+html[data-theme="day"] .app-shell [class*="to-sky-500"],
+html[data-theme="day"] .interview-theme [class*="from-blue-600"],
+html[data-theme="day"] .interview-theme [class*="to-sky-500"] {
+  --tw-gradient-from: #1f6447 !important;
+  --tw-gradient-to: #438062 !important;
+}
+
+html[data-theme="day"] .theme-toggle {
+  border-color: #d7dfd8 !important;
+  color: #526159 !important;
+}
+
+html[data-theme="day"] .theme-toggle:hover {
+  background-color: #eaf0e9 !important;
+}
+
+/* Keep the public page and its navigation in the same theme as the workspace. */
+html[data-theme="night"] .landing-theme,
+html[data-theme="night"] .site-nav,
+html[data-theme="night"] .site-mobile-menu {
+  background-color: #07090e !important;
+  color: #e2e8f0 !important;
+}
+
+html[data-theme="night"] .landing-theme [class*="bg-white"],
+html[data-theme="night"] .landing-theme [class*="bg-[#f"],
+html[data-theme="night"] .landing-theme [class*="bg-[#e"],
+html[data-theme="night"] .site-nav,
+html[data-theme="night"] .site-mobile-menu {
+  background-color: #0d121d !important;
+}
+
+html[data-theme="night"] .landing-theme [class*="border-[#"],
+html[data-theme="night"] .site-nav,
+html[data-theme="night"] .site-mobile-menu {
+  border-color: #1a2336 !important;
+}
+
+html[data-theme="night"] .landing-theme [class*="text-[#"],
+html[data-theme="night"] .site-nav [class*="text-[#"],
+html[data-theme="night"] .site-mobile-menu [class*="text-[#"] {
+  color: #cbd5d1 !important;
+}
+
+html[data-theme="day"] .landing-theme [class*="from-blue-600"],
+html[data-theme="day"] .landing-theme [class*="to-sky-500"] {
+  --tw-gradient-from: #1f6447 !important;
+  --tw-gradient-to: #438062 !important;
+}
+
+html[data-theme="day"] .landing-theme .text-sky-400,
+html[data-theme="day"] .landing-theme .text-blue-400 {
+  color: #347354 !important;
+}
+
+html[data-theme="night"] .landing-theme button.text-white,
+html[data-theme="night"] .landing-theme a.text-white,
+html[data-theme="night"] .site-nav button.text-white,
+html[data-theme="night"] .site-nav a.text-white,
+html[data-theme="night"] .site-mobile-menu button.text-white {
+  color: #ffffff !important;
+}
+
+html[data-theme="night"] .site-nav .theme-toggle,
+html[data-theme="night"] .site-mobile-menu .theme-toggle {
+  border-color: #26344a !important;
+  color: #cbd5e1 !important;
+}

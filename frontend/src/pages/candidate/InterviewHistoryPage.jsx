@@ -104,17 +104,17 @@ export const InterviewHistoryPage = () => {
                   <div className="space-y-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="text-sm sm:text-base font-bold text-white break-words">{item.jobRole}</h3>
-                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${getStatusBadgeStyle(item.status)}`}>{item.status}</span>
+                      <span className={`status-${item.status} text-[10px] font-semibold px-2 py-0.5 rounded-full border ${getStatusBadgeStyle(item.status)}`}>{item.status}</span>
                     </div>
                     <div className="flex items-center gap-2 text-[11px] sm:text-xs text-slate-400 flex-wrap">
                       <Calendar className="w-3.5 h-3.5 shrink-0" />
                       <span>{formatDate(item.startedAt || item.createdAt)}</span>
                       <Clock3 className="w-3.5 h-3.5 shrink-0 ml-1" />
                       <span>{formatStartTime(item.startedAt || item.createdAt)}</span>
-                      <span>•</span>
+                      <span>|</span>
                       <Timer className="w-3.5 h-3.5 shrink-0 ml-1" />
                       <span>Duration {formatDuration(item.duration)}</span>
-                      {item.overallScore != null && <><span>•</span><span className="font-bold text-sky-400">{item.overallScore}/100</span></>}
+                      {item.overallScore != null && <><span>|</span><span className="font-bold text-sky-400">{item.overallScore}/100</span></>}
                     </div>
                   </div>
                 </div>

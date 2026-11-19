@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { LogOut, Menu, Search, Sparkles, User, Bot } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Dropdown } from '../common/Dropdown';
+import { ThemeToggle } from '../common/ThemeToggle';
 
 export const Header = ({ onToggleMobileMenu }) => {
   const navigate = useNavigate();
@@ -23,6 +24,7 @@ export const Header = ({ onToggleMobileMenu }) => {
       </div>
 
       <div className="flex items-center gap-2 sm:gap-3">
+        <ThemeToggle className="px-2 sm:px-3" />
         <Dropdown
           align="right"
           width="w-56"

@@ -38,14 +38,14 @@ const FeedbackList = ({ title, items, icon: Icon, tone }) => (
 );
 
 const KeywordCard = ({ title, items = [], tone, emptyMessage }) => (
-  <Card className="p-5 sm:p-6">
+  <Card className="keyword-card p-5 sm:p-6">
     <div className="flex items-center justify-between gap-3 mb-4">
-      <h2 className={`text-sm font-bold ${tone}`}>{title}</h2>
-      <span className="text-[10px] text-slate-500">{items.length} found</span>
+      <h2 className={`keyword-title text-sm font-bold ${tone}`}>{title}</h2>
+      <span className="keyword-count text-[10px] text-slate-500">{items.length} found</span>
     </div>
     {items.length ? (
       <div className="flex flex-wrap gap-2">
-        {items.map((item) => <span key={item} className={`px-2.5 py-1 rounded-full border text-[10px] ${tone} border-current/20 bg-current/5`}>{item}</span>)}
+        {items.map((item) => <span key={item} className={`keyword-text px-2.5 py-1 rounded-full border text-[10px] ${tone} border-current/20 bg-current/5`}>{item}</span>)}
       </div>
     ) : <p className="text-xs text-slate-500">{emptyMessage}</p>}
   </Card>

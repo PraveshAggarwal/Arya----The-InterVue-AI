@@ -60,7 +60,7 @@ export const RecentInterviews = ({ interviews = [], compact = false }) => {
                     <Calendar className="w-3 h-3" />
                     <span>{formatDate(item.createdAt)}</span>
                   </span>
-                  <span>•</span>
+                  <span>|</span>
                   <span className="flex items-center gap-1" title="Interview duration">
                     <Clock className="w-3 h-3" />
                     <span>{formatDuration(item.duration)}</span>

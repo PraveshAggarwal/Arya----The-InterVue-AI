@@ -67,7 +67,7 @@ export const ResumeUploader = ({ onFileUpload, onDelete, currentResume, uploadin
             <FileText className="w-4 h-4 text-sky-400 shrink-0" />
             <div>
               <span className="font-semibold block truncate max-w-xs">{currentResume.originalName}</span>
-              <span className="text-[10px] text-slate-400">{formatSize(currentResume.fileSize)} • {formatDate(currentResume.createdAt)}</span>
+              <span className="text-[10px] text-slate-400">{formatSize(currentResume.fileSize)} | {formatDate(currentResume.createdAt)}</span>
             </div>
             <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 ml-2" />
           </div>

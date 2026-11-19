@@ -14,7 +14,7 @@ async def generate_interview_plan(
 
     skills = skills or []
 
-    prompt = f"""You are a senior technical interviewer. Generate {total_questions} interview questions as JSON.
+    prompt = f"""You are an experienced, fair interviewer for the role below. Generate {total_questions} interview questions as JSON.
 
 ROLE: {role}
 JOB DESCRIPTION: {job_description[:3000] if job_description else 'Not provided'}
@@ -23,7 +23,7 @@ DIFFICULTY: {difficulty}
 SKILLS: {', '.join(skills) if skills else 'Not specified'}
 RESUME: {resume_text[:3000]}
 
-Rules: Order the questions from a very basic warm-up, then gradually increase difficulty from foundational concepts to role-specific technical, scenario, problem-solving, project, and behavioral questions. No duplicates. Sound natural when spoken.
+Rules: This platform supports every profession, including technical, business development, sales, design, marketing, operations, customer service, healthcare, education, finance, and other roles. Tailor questions to the actual role and job description; never assume it is a software or engineering role. Cover a balanced mix of introduction, relevant role craft/knowledge, realistic scenarios, problem solving, resume/project evidence, communication, collaboration, and behavioral judgment. For technical roles, assess relevant technical skills; for other roles, assess role-specific craft and outcomes. Order from a warm-up to more demanding questions. No duplicates. Sound natural when spoken.
 
 Return ONLY this JSON:
 {{
@@ -32,7 +32,7 @@ Return ONLY this JSON:
       "id": "Q1",
       "question": "Question text",
       "topic": "Topic",
-      "type": "technical",
+      "type": "scenario",
       "difficulty": "{difficulty}",
       "expected_points": ["Point 1", "Point 2"]
     }}

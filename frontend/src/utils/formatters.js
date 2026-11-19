@@ -27,6 +27,8 @@ export const getStatusBadgeStyle = (status) => {
   switch (status.toLowerCase()) {
     case 'completed':
       return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30';
+    case 'draft':
+      return 'bg-amber-500/10 text-amber-400 border-amber-500/30';
     case 'in progress':
       return 'bg-sky-500/10 text-sky-400 border-sky-500/30 animate-pulse';
     case 'scheduled':

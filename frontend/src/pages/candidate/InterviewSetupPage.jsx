@@ -96,8 +96,8 @@ export const InterviewSetupPage = () => {
     <div className="max-w-3xl mx-auto space-y-6 animate-in fade-in duration-300">
       <header className="pb-4 border-b border-[#141d33] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-white">Create an Interview</h1>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">Your resume, role, and experience shape the interview. Add a job description if you have one.</p>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-white">Practice for your next role</h1>
+          <p className="text-xs sm:text-sm text-slate-400 mt-1">Any profession, any career stage. Your role, experience, and job description shape a relevant interview.</p>
         </div>
       </header>
 
@@ -113,13 +113,13 @@ export const InterviewSetupPage = () => {
           <label className="block text-sm font-bold text-white">
             <span className="flex items-center gap-2 mb-2">
               <Briefcase className="w-4 h-4 text-sky-400" />
-              Role you applied for <span className="text-rose-400">*</span>
+              Target job title <span className="text-rose-400">*</span>
             </span>
             <input
               required
               value={jobRole}
               onChange={(e) => setJobRole(e.target.value)}
-              placeholder="e.g. Senior Backend Engineer"
+              placeholder="e.g. BDE, UI/UX Designer, Sales Executive, Teacher, Software Developer"
               className="w-full rounded-xl bg-[#090e1b] border border-[#1b2640] p-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-sky-400 transition-colors"
             />
           </label>

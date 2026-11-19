@@ -13,11 +13,13 @@ import {
   Sparkles,
   Loader2,
   LayoutDashboard,
-  History
+  History,
+  CalendarClock
 } from 'lucide-react';
 import { AIAvatar } from '../../components/interview/AIAvatar';
 import { CandidateCamera } from '../../components/interview/CandidateCamera';
 import { ScoreMetricsGrid } from '../../components/reports/ScoreMetricsGrid';
+import { KeyTakeaways } from '../../components/reports/KeyTakeaways';
 import { QuestionReviewList } from '../../components/reports/QuestionReviewList';
 import { useSpeech } from '../../hooks/useSpeech';
 import { interviewService, questionService } from '../../services/api';
@@ -57,6 +59,7 @@ export const InterviewQuestionsPage = () => {
   const [report, setReport] = useState(null);
   const [showEndConfirm, setShowEndConfirm] = useState(false);
   const [interviewStartedAt, setInterviewStartedAt] = useState(null);
+  const [interviewCompletedAt, setInterviewCompletedAt] = useState(null);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
   const { speaking, listening, speak, listen, stopListening, stopAll } = useSpeech();
@@ -108,6 +111,7 @@ export const InterviewQuestionsPage = () => {
         setReport(i.data?.report || null);
         setInterviewStatus(i.data?.status || 'draft');
         setInterviewStartedAt(i.data?.startedAt || null);
+        setInterviewCompletedAt(i.data?.completedAt || null);
         setInterviewLoaded(true);
       })
       .catch(() => {
@@ -129,7 +133,7 @@ export const InterviewQuestionsPage = () => {
           setPhase(PHASE.SPEAKING);
           questionStartTimerRef.current = setTimeout(() => {
             speak(
-              `Hi, I'm Arya you AI Interviewr Developed by Pravesh Aggarwal. Thanks for joining me today. We'll talk about your experience and the ${role} role. Take a moment to think before answering, and let me know if you'd like me to repeat a question.`,
+              `Hi, I'm Arya, your AI interviewer. Thanks for joining me. We'll talk about your experience and the ${role} role. Take a moment to think before answering, and let me know if you'd like me to repeat a question.`,
               () => askQuestionRef.current?.(first),
             );
           }, 800);
@@ -316,6 +320,8 @@ export const InterviewQuestionsPage = () => {
       setSavedRemarks(refreshed.data?.remarks || finalRemarks || '');
       setSavedTranscript(refreshed.data?.transcript || transcript);
       setReport(refreshed.data?.report || null);
+      setInterviewStartedAt(refreshed.data?.startedAt || interviewStartedAt);
+      setInterviewCompletedAt(refreshed.data?.completedAt || null);
       setInterviewStatus('completed');
       setEndError('');
     } catch (error) {
@@ -327,6 +333,8 @@ export const InterviewQuestionsPage = () => {
           setSavedRemarks(current.data?.remarks || '');
           setSavedTranscript(current.data?.transcript || []);
           setReport(current.data?.report || null);
+          setInterviewStartedAt(current.data?.startedAt || interviewStartedAt);
+          setInterviewCompletedAt(current.data?.completedAt || null);
           return;
         }
       } catch {
@@ -334,7 +342,7 @@ export const InterviewQuestionsPage = () => {
       }
       setEndError(error.response?.data?.message || 'Could not save the completed interview. Retry to finish saving it.');
     }
-  }, [id, remarks, history, currentIndex, phase]);
+  }, [id, remarks, history, currentIndex, phase, interviewStartedAt]);
 
   const finishInterview = useCallback(async (finalRemarks = remarks, transcript = history, fullyCompleted = false) => {
     if (endedRef.current) return;
@@ -356,7 +364,7 @@ export const InterviewQuestionsPage = () => {
   // 1. Loading Screen
   if (!interviewLoaded) {
     return (
-      <div className="min-h-screen bg-[#07090e] flex flex-col items-center justify-center gap-4 text-slate-300">
+      <div className="interview-theme min-h-screen bg-[#07090e] flex flex-col items-center justify-center gap-4 text-slate-300">
         <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 via-sky-500 to-cyan-400 p-0.5 shadow-xl shadow-sky-500/20 animate-pulse">
           <div className="w-full h-full bg-[#07090e] rounded-[14px] flex items-center justify-center">
             <Bot className="w-7 h-7 text-sky-400" />
@@ -373,7 +381,7 @@ export const InterviewQuestionsPage = () => {
   // 2. Completed Debrief Screen
   if (interviewStatus === 'completed') {
     return (
-      <div className="min-h-screen bg-[#07090e] text-slate-100 py-6 sm:py-12 px-3 sm:px-6 lg:px-8">
+      <div className="interview-theme min-h-screen bg-[#07090e] text-slate-100 py-6 sm:py-12 px-3 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8 animate-in fade-in duration-300">
           
           {/* Header Banner */}
@@ -390,9 +398,13 @@ export const InterviewQuestionsPage = () => {
                 <p className="text-xs sm:text-sm text-slate-300 max-w-xl leading-relaxed">
                   Your mock session with Arya has concluded. A full transcript analysis, scoring breakdown, and executive feedback are generated below.
                 </p>
+                {(interviewStartedAt || interviewCompletedAt) && <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-xs text-slate-400">
+                  {interviewStartedAt && <span className="inline-flex items-center gap-1.5"><CalendarClock className="w-3.5 h-3.5 text-sky-400" />Started {new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(interviewStartedAt))}</span>}
+                  {interviewCompletedAt && <span className="inline-flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />Completed {new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(interviewCompletedAt))}</span>}
+                </div>}
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 shrink-0">
+              <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 shrink-0">
                 <button
                   onClick={() => navigate('/history')}
                   className="px-4 py-2.5 rounded-xl text-xs font-semibold bg-[#11192e] hover:bg-[#18233d] text-slate-200 hover:text-white border border-[#1f2b48] flex items-center justify-center gap-2 transition-all cursor-pointer"
@@ -427,6 +439,9 @@ export const InterviewQuestionsPage = () => {
           {/* Detailed Score Metrics */}
           {report && <ScoreMetricsGrid report={report} />}
 
+          {/* Strengths, improvement areas, and next steps */}
+          {report && <KeyTakeaways report={report} />}
+
           {/* Full Question Breakdown */}
           <QuestionReviewList reviews={report?.questionReviews || savedTranscript} />
 
@@ -449,7 +464,7 @@ export const InterviewQuestionsPage = () => {
   // 3. Unavailable Screen
   if (interviewStatus === 'unavailable') {
     return (
-      <div className="min-h-screen bg-[#07090e] flex items-center justify-center p-6 text-center">
+      <div className="interview-theme min-h-screen bg-[#07090e] flex items-center justify-center p-6 text-center">
         <div className="max-w-md w-full p-8 rounded-3xl bg-[#0c1220] border border-rose-500/20 shadow-2xl">
           <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center mx-auto mb-4 text-rose-400">
             <AlertCircle className="w-6 h-6" />
@@ -472,7 +487,7 @@ export const InterviewQuestionsPage = () => {
   // 4. Pre-interview microphone check-in screen
   if (!mediaStream) {
     return (
-      <div className="min-h-screen bg-[#07090e] flex items-center justify-center p-3 sm:p-6">
+      <div className="interview-theme min-h-screen bg-[#07090e] flex items-center justify-center p-3 sm:p-6">
         <div className="w-full max-w-lg rounded-2xl sm:rounded-3xl border border-sky-500/25 bg-[#0b1120] p-5 sm:p-8 shadow-2xl relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -548,7 +563,7 @@ export const InterviewQuestionsPage = () => {
 
   // 5. Active Studio Interview Room
   return (
-    <div className="min-h-screen bg-[#07090e] text-slate-100 flex flex-col select-none">
+    <div className="interview-theme min-h-screen bg-[#07090e] text-slate-100 flex flex-col select-none">
       
       {/* Sleek Top Studio Bar */}
       <header className="h-16 px-3 sm:px-6 lg:px-8 border-b border-[#141d33] bg-[#080d18]/90 backdrop-blur-md flex items-center justify-between shrink-0 z-30 gap-2">
@@ -567,7 +582,7 @@ export const InterviewQuestionsPage = () => {
                 Live Studio
               </span>
             </div>
-            <p className="text-[10px] text-slate-400 hidden sm:block">AI-Assisted Technical Assessment</p>
+            <p className="text-[10px] text-slate-400 hidden sm:block">Role-specific AI interview practice</p>
           </div>
         </div>
 
@@ -621,7 +636,7 @@ export const InterviewQuestionsPage = () => {
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0d1629] border border-[#1b2742] text-xs">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
               <span className="font-semibold text-slate-200">Arya</span>
-              <span className="text-[10px] text-slate-400">· Senior Interview Lead</span>
+              <span className="text-[10px] text-slate-400">- Senior Interview Lead</span>
             </div>
 
             {/* Current Phase Pill */}

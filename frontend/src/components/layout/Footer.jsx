@@ -21,7 +21,7 @@ export const Footer = () => {
             </Link>
             
             <p className="text-slate-400 text-xs leading-relaxed max-w-sm">
-              An intelligent, conversational mock interview platform built for engineers and professionals. Practice with human-like AI, receive real-time follow-ups, and master your technical communication.
+              A conversational interview practice platform for every profession. Practice role-specific conversations, receive thoughtful follow-ups, and get clear feedback to help you grow.
             </p>
 
             {/* Developer Tag */}

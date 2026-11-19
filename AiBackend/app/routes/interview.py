@@ -12,13 +12,13 @@ async def performance_report(data: PerformanceReportRequest):
             f"Question: {turn.question}\nCandidate answer: {turn.answer}"
             for turn in data.transcript
         ) or "No answers were captured."
-        prompt = f"""You are a fair, constructive interviewer evaluating a completed interview.
+        prompt = f"""You are a fair, constructive interviewer evaluating a completed interview for any profession.
 
 ROLE: {data.role}
 TRANSCRIPT:
 {transcript[:18000]}
 
-Evaluate only what the candidate said. Give practical, specific feedback. Do not invent achievements.
+Evaluate only what the candidate said. Give practical, specific feedback. Do not invent achievements. Adapt every criterion to the role: assess technical skills only when relevant, otherwise assess the role's core craft (for example sales discovery, design rationale, customer care, communication, analysis, or operational judgment). Use the technicalSkills output field as the roleCraft score for compatibility with existing clients. Return at least three distinct, evidence-based areas to improve when the transcript contains enough evidence. Each point should name a specific gap or missed opportunity in an answer and explain why it matters for this role; avoid vague or repeated advice. Make recommendations concrete practice steps that address these areas. If an answer was strong, suggest a meaningful way to make it more specific or compelling rather than inventing a weakness.
 Return ONLY this JSON:
 {{
   "overallScore": 0,
@@ -38,7 +38,7 @@ All scores are integers from 0 to 100. Include one review per transcript turn.""
                     "overallScore": {"type": "integer", "minimum": 0, "maximum": 100},
                     "summary": {"type": "string"},
                     "strengths": {"type": "array", "items": {"type": "string"}},
-                    "weaknesses": {"type": "array", "items": {"type": "string"}},
+                    "weaknesses": {"type": "array", "minItems": 3, "items": {"type": "string"}},
                     "recommendations": {"type": "array", "items": {"type": "string"}},
                     "performance": {"type": "object", "properties": {"communication": {"type": "integer"}, "technicalSkills": {"type": "integer"}, "problemSolving": {"type": "integer"}, "confidence": {"type": "integer"}}, "required": ["communication", "technicalSkills", "problemSolving", "confidence"], "additionalProperties": False},
                     "questionReviews": {"type": "array", "items": {"type": "object", "properties": {"question": {"type": "string"}, "answer": {"type": "string"}, "score": {"type": "integer", "minimum": 0, "maximum": 100}, "feedback": {"type": "string"}}, "required": ["question", "answer", "score", "feedback"], "additionalProperties": False}},
@@ -76,12 +76,12 @@ MAIN QUESTION PROGRESS: {data.main_question_number} of {data.total_questions} (f
 FOLLOW-UP COUNT: {data.followup_count}
 FOLLOW-UP ALLOWED: {allow_followup}
 
-Decide the next action like a thoughtful human interviewer. Always put a short spoken acknowledgment or useful feedback in "response", then ask the next question in "question".
+Decide the next action like a thoughtful human interviewer for this profession. Always put a short spoken acknowledgment or useful feedback in "response", then ask the next question in "question".
 - For a blank, "(no answer)", "I don't know", or clearly incorrect answer, be reassuring and non-judgmental. Briefly explain that it is okay not to know, then give one small hint or ask a simpler focused probe that lets the candidate try again. Do not praise an answer that was not given.
 - Use "follow_up" when an answer is vague, incomplete, unsupported, or misses an important part. In "response", politely say what needs more detail; in "question", ask one focused probing question. Do not move on until the answer is reasonably clear; at most {2 - data.followup_count} more probes are available for this question.
 - If the answer is clear and substantive, acknowledge a specific strength in "response" (for example, clear reasoning, a relevant example, or a measurable outcome), then ask the next distinct question. Avoid generic praise and do not exaggerate.
 - If the candidate's answer is especially strong, say specifically what made it strong. If it is weak, be kind but direct about what is missing and how to improve it.
-- Across the interview, cover both the role/job description and the candidate's resume. Ask about specific resume projects, their contribution, outcomes, listed skills, and certifications; do not make every question about the job title.
+- Across the interview, cover the role/job description and candidate's resume. Ask about relevant examples, contribution, outcomes, listed skills, and certifications. Adapt to any profession; do not assume software projects or technical terminology, and do not make every question about the job title.
 - Do not complete before all {data.total_questions} main questions have been answered. Follow-up questions do not count as a new main question.
 - Never ask a question already present in RECENT HISTORY, including a paraphrase of one. A follow-up must add a genuinely new, narrower probe.
 - Keep the question concise and conversational (1-2 sentences max).

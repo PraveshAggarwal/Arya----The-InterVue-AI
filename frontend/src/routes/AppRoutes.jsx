@@ -15,7 +15,7 @@ const ResumeAnalysisPage = lazy(() => import('../pages/candidate/ResumeAnalysisP
 const ProfilePage = lazy(() => import('../pages/candidate/ProfilePage').then(m => ({ default: m.ProfilePage })));
 
 const PageLoadingFallback = () => (
-  <div className="min-h-screen bg-[#07090e] flex flex-col items-center justify-center gap-3">
+  <div className="app-shell min-h-screen bg-[#07090e] flex flex-col items-center justify-center gap-3">
     <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 via-sky-500 to-cyan-400 p-0.5 shadow-xl shadow-sky-500/20 animate-pulse">
       <div className="w-full h-full bg-[#07090e] rounded-[14px] flex items-center justify-center">
         <Bot className="w-6 h-6 text-sky-400" />

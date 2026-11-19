@@ -8,7 +8,7 @@ export const DashboardLayout = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="h-screen bg-[#07090e] text-slate-100 flex overflow-hidden">
+    <div className="app-shell h-screen bg-[#07090e] text-slate-100 flex overflow-hidden">
       {/* Desktop Sidebar (Fixed) */}
       <aside className="hidden lg:flex fixed inset-y-0 left-0 w-64 z-30 h-screen flex-col">
         <Sidebar />

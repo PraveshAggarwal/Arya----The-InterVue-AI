@@ -39,7 +39,7 @@ export const AIAvatar = ({ speaking = false, thinking = false, size = 'default' 
         <img
           src={aryaPortrait}
           alt="Arya, Senior AI Interviewer"
-          className={`h-full w-full object-cover transition-transform duration-700 ${
+          className={`h-full w-full aspect-square rounded-full object-cover object-center transition-transform duration-700 ${
             speaking ? 'scale-105' : 'scale-100'
           }`}
         />
@@ -78,7 +78,7 @@ export const AIAvatar = ({ speaking = false, thinking = false, size = 'default' 
         <div className="mt-4 text-center">
           <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-[#0d1629] border border-[#1c2b4d] text-[11px] font-medium text-slate-300">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-            <span>Arya · AI Lead</span>
+            <span>Arya - AI Lead</span>
           </div>
         </div>
       )}

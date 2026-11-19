@@ -51,7 +51,7 @@ export const ResumeUploader = ({ onFileUpload, onDelete, currentResume, uploadin
           uploading ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
         } ${isDragging ? 'border-sky-400 bg-sky-500/10 scale-[1.01]' : 'border-[#1e2a47] hover:border-sky-500/50 bg-[#090d17]/60 hover:bg-[#0c1220]'}`}
       >
-        <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600/30 to-sky-400/20 border border-sky-500/30 mx-auto flex items-center justify-center mb-4 text-sky-400 shadow-lg shadow-sky-500/10">
+        <div className="resume-upload-icon w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600/30 to-sky-400/20 border border-sky-500/30 mx-auto flex items-center justify-center mb-4 text-sky-400 shadow-lg shadow-sky-500/10">
           {uploading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Upload className="w-6 h-6" />}
         </div>
 

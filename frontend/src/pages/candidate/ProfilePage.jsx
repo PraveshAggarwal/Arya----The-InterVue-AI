@@ -32,14 +32,16 @@ export const ProfilePage = () => {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 sm:space-y-8 animate-in fade-in duration-300">
-      <div className="pb-2 border-b border-[#141d33] flex items-center justify-between">
+      <div className="pb-2 border-b border-[#141d33] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">Candidate Profile</h1>
           <p className="text-xs text-slate-400 mt-1">Manage your personal details and account information.</p>
         </div>
-        <Button onClick={handleSave} variant="primary" size="md" loading={isSaving} icon={Save}>
-          Save Changes
-        </Button>
+        <div className="w-full sm:w-auto">
+          <Button onClick={handleSave} variant="primary" size="md" loading={isSaving} icon={Save} className="w-full sm:w-auto">
+            Save Changes
+          </Button>
+        </div>
       </div>
 
       <form onSubmit={handleSave} className="space-y-6">

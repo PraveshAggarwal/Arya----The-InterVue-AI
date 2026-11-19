@@ -36,7 +36,7 @@ export const CandidateCamera = ({ stream, isListening = false, className = '' })
 
       {/* Top badges */}
       <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-md text-[10px] font-semibold text-slate-200 border border-white/10">
+        <span className="camera-overlay-badge inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-md text-[10px] font-semibold text-slate-200 border border-white/10">
           <Video className="w-3 h-3 text-sky-400" />
           HD 720p
         </span>
@@ -44,7 +44,7 @@ export const CandidateCamera = ({ stream, isListening = false, className = '' })
 
       {/* Mic status */}
       <div className="absolute top-2.5 right-2.5">
-        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold backdrop-blur-md border ${
+        <span className={`camera-overlay-badge inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold backdrop-blur-md border ${
           isListening
             ? 'bg-emerald-950/80 text-emerald-300 border-emerald-500/40 shadow-sm shadow-emerald-500/20'
             : 'bg-black/60 text-slate-400 border-white/10'
@@ -56,7 +56,7 @@ export const CandidateCamera = ({ stream, isListening = false, className = '' })
 
       {/* Bottom candidate name tag */}
       <div className="absolute bottom-2.5 left-2.5 flex items-center gap-2">
-        <div className="px-2.5 py-1 rounded-lg bg-black/70 backdrop-blur-md text-xs font-semibold text-white border border-white/10 flex items-center gap-1.5">
+        <div className="camera-overlay-badge px-2.5 py-1 rounded-lg bg-black/70 backdrop-blur-md text-xs font-semibold text-white border border-white/10 flex items-center gap-1.5">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
           <span>You (Candidate)</span>
         </div>

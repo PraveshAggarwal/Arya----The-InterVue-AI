@@ -28,7 +28,7 @@ export const AIAvatar = ({ speaking = false, thinking = false, size = 'default' 
 
       {/* Main Avatar Circle */}
       <div
-        className={`relative ${avatarSize} overflow-hidden rounded-full border-4 transition-all duration-500 ${
+        className={`relative ${avatarSize} aspect-square shrink-0 overflow-hidden rounded-full border-4 transition-all duration-500 ${
           speaking
             ? 'border-sky-300 shadow-[0_0_40px_rgba(56,189,248,0.45)] ring-4 ring-sky-400/20'
             : thinking
@@ -39,13 +39,10 @@ export const AIAvatar = ({ speaking = false, thinking = false, size = 'default' 
         <img
           src={aryaPortrait}
           alt="Arya, Senior AI Interviewer"
-          className={`h-full w-full aspect-square rounded-full object-cover object-center transition-transform duration-700 ${
+          className={`h-full w-full rounded-full object-cover object-center transition-transform duration-700 ${
             speaking ? 'scale-105' : 'scale-100'
           }`}
         />
-
-        {/* Bottom subtle gradient on image */}
-        <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-[#070b14]/80 to-transparent" />
       </div>
 
       {/* Speaker audio indicator wave */}

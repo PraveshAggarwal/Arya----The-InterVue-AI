@@ -76,11 +76,11 @@ export const UpcomingSessions = () => {
   };
 
   return (
-    <Card className="p-6">
+    <Card className="p-4 sm:p-6">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-base font-bold text-white tracking-tight">Practice ideas for you</h3>
-          <p className="text-xs text-slate-400">Three role ideas | refresh every 3 hours</p>
+          <h3 className="text-sm sm:text-base font-bold text-white tracking-tight">Practice ideas for you</h3>
+          <p className="text-[11px] sm:text-xs text-slate-400">Three role ideas | refresh every 3 hours</p>
         </div>
         <span className="p-1 rounded-full bg-sky-500/10 text-sky-400"><Sparkles className="w-4 h-4" /></span>
       </div>

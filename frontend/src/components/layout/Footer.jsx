@@ -1,14 +1,13 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { Bot, Heart, ExternalLink, Sparkles } from 'lucide-react';
-import { GithubIcon, LinkedinIcon, XIcon } from '../common/SocialIcons';
+import React from "react";
+import { Link } from "react-router-dom";
+import { Bot, Heart, ExternalLink, Sparkles } from "lucide-react";
+import { GithubIcon, LinkedinIcon, XIcon } from "../common/SocialIcons";
 
 export const Footer = () => {
   return (
     <footer className="bg-[#05070c] border-t border-[#121929] text-slate-400 text-xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10">
-          
           {/* Brand & Creator Bio */}
           <div className="lg:col-span-2 space-y-4">
             <Link to="/" className="flex items-center gap-2.5 group w-fit">
@@ -17,18 +16,27 @@ export const Footer = () => {
                   <Bot className="w-4 h-4 text-sky-400" />
                 </div>
               </div>
-              <span className="font-bold text-base text-white tracking-tight">InterVue <span className="text-sky-400 font-extrabold">AI</span></span>
+              <span className="font-bold text-base text-white tracking-tight">
+                InterVue <span className="text-sky-400 font-extrabold">AI</span>
+              </span>
             </Link>
-            
+
             <p className="text-slate-400 text-xs leading-relaxed max-w-sm">
-              A conversational interview practice platform for every profession. Practice role-specific conversations, receive thoughtful follow-ups, and get clear feedback to help you grow.
+              A conversational interview practice platform for every profession.
+              Practice role-specific conversations, receive thoughtful
+              follow-ups, and get clear feedback to help you grow.
             </p>
 
             {/* Developer Tag */}
             <div className="pt-2">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#0a0f1d] border border-[#1b2742] text-[11px] text-slate-300">
                 <Sparkles className="w-3.5 h-3.5 text-sky-400" />
-                <span>Crafted by <strong className="text-white font-semibold">Pravesh Aggarwal</strong></span>
+                <span>
+                  Crafted by{" "}
+                  <strong className="text-white font-semibold">
+                    Pravesh Aggarwal
+                  </strong>
+                </span>
               </div>
             </div>
 
@@ -71,45 +79,88 @@ export const Footer = () => {
 
           {/* Product links */}
           <div>
-            <h4 className="text-white text-xs font-bold uppercase tracking-wider mb-4">Platform</h4>
+            <h4 className="text-white text-xs font-bold uppercase tracking-wider mb-4">
+              Platform
+            </h4>
             <ul className="space-y-2.5">
               <li>
-                <a href="#features" className="hover:text-sky-400 transition-colors">Features</a>
+                <a
+                  href="#features"
+                  className="hover:text-sky-400 transition-colors"
+                >
+                  Features
+                </a>
               </li>
               <li>
-                <a href="#how-it-works" className="hover:text-sky-400 transition-colors">How It Works</a>
+                <a
+                  href="#how-it-works"
+                  className="hover:text-sky-400 transition-colors"
+                >
+                  How It Works
+                </a>
               </li>
               <li>
-                <a href="#faq" className="hover:text-sky-400 transition-colors">FAQ</a>
+                <a href="#faq" className="hover:text-sky-400 transition-colors">
+                  FAQ
+                </a>
               </li>
               <li>
-                <Link to="/interview/setup" className="hover:text-sky-400 transition-colors">Start Mock Interview</Link>
+                <Link
+                  to="/interview/setup"
+                  className="hover:text-sky-400 transition-colors"
+                >
+                  Start Mock Interview
+                </Link>
               </li>
             </ul>
           </div>
 
           {/* Quick Resources */}
           <div>
-            <h4 className="text-white text-xs font-bold uppercase tracking-wider mb-4">Candidate Portal</h4>
+            <h4 className="text-white text-xs font-bold uppercase tracking-wider mb-4">
+              Candidate Portal
+            </h4>
             <ul className="space-y-2.5">
               <li>
-                <Link to="/dashboard" className="hover:text-sky-400 transition-colors">Dashboard</Link>
+                <Link
+                  to="/dashboard"
+                  className="hover:text-sky-400 transition-colors"
+                >
+                  Dashboard
+                </Link>
               </li>
               <li>
-                <Link to="/history" className="hover:text-sky-400 transition-colors">Interview History</Link>
+                <Link
+                  to="/history"
+                  className="hover:text-sky-400 transition-colors"
+                >
+                  Interview History
+                </Link>
               </li>
               <li>
-                <Link to="/profile" className="hover:text-sky-400 transition-colors">Candidate Profile</Link>
+                <Link
+                  to="/profile"
+                  className="hover:text-sky-400 transition-colors"
+                >
+                  Candidate Profile
+                </Link>
               </li>
               <li>
-                <Link to="/login" className="hover:text-sky-400 transition-colors">Account Sign In</Link>
+                <Link
+                  to="/login"
+                  className="hover:text-sky-400 transition-colors"
+                >
+                  Account Sign In
+                </Link>
               </li>
             </ul>
           </div>
 
           {/* Developer & Connect */}
           <div>
-            <h4 className="text-white text-xs font-bold uppercase tracking-wider mb-4">Connect With Pravesh</h4>
+            <h4 className="text-white text-xs font-bold uppercase tracking-wider mb-4">
+              Connect With Pravesh
+            </h4>
             <ul className="space-y-2.5">
               <li>
                 <a
@@ -146,19 +197,19 @@ export const Footer = () => {
               </li>
             </ul>
           </div>
-
         </div>
 
         {/* Bottom bar */}
         <div className="pt-10 mt-12 border-t border-[#12192a] flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-slate-500">
           <div>
-            &copy; {new Date().getFullYear()} InterVue AI. Built with precision for aspiring candidates worldwide.
+            &copy; {new Date().getFullYear()} InterVue AI. Built with precision
+            for aspiring candidates worldwide.
           </div>
           <div className="flex items-center gap-1.5">
             <span>Designed & developed by</span>
-            <a 
-              href="https://github.com/PraveshAggarwal" 
-              target="_blank" 
+            <a
+              href="https://github.com/PraveshAggarwal"
+              target="_blank"
               rel="noopener noreferrer"
               className="text-slate-300 hover:text-sky-400 font-semibold underline underline-offset-2 transition-colors"
             >

@@ -24,6 +24,7 @@ export const ScoreRing = ({ score = 87, size = 110, strokeWidth = 10, showText =
 
         {/* Background track */}
         <circle
+          className="score-ring-track"
           cx={size / 2}
           cy={size / 2}
           r={radius}

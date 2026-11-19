@@ -153,6 +153,33 @@ html[data-theme="day"] .landing-theme [class*="border-[#"] {
   border-color: #dfe8df !important;
 }
 
+html[data-theme="day"] .app-shell [class*="divide-[#"] > * + * {
+  border-color: #dfe8df !important;
+}
+
+html[data-theme="day"] .app-shell [class*="bg-gradient-to-tr"][class*="from-blue-600"][class*="to-sky-400"] {
+  --tw-gradient-from: #1f6447 !important;
+  --tw-gradient-to: #438062 !important;
+}
+
+html[data-theme="day"] .app-shell [class*="bg-gradient-to-tr"][class*="from-blue-600"][class*="to-cyan-400"] {
+  --tw-gradient-from: #1f6447 !important;
+  --tw-gradient-to: #60a37e !important;
+}
+
+html[data-theme="day"] .app-shell select,
+html[data-theme="day"] .interview-theme select {
+  background-color: #f4f7f4 !important;
+  border-color: #d7dfd8 !important;
+  color: #294737 !important;
+}
+
+html[data-theme="day"] .app-shell select option,
+html[data-theme="day"] .interview-theme select option {
+  background-color: #ffffff !important;
+  color: #294737 !important;
+}
+
 html[data-theme="day"] .app-shell .text-white,
 html[data-theme="day"] .app-shell .text-slate-100,
 html[data-theme="day"] .app-shell .text-slate-200,
@@ -268,17 +295,373 @@ html[data-theme="day"] .app-shell .keyword-text {
 }
 
 html[data-theme="day"] .landing-theme .text-white:not(.theme-preserve-white),
-html[data-theme="day"] .landing-theme .text-slate-100,
-html[data-theme="day"] .landing-theme .text-slate-200,
-html[data-theme="day"] .landing-theme .text-slate-300 {
+html[data-theme="day"] .landing-theme .text-slate-100:not(.theme-preserve-white),
+html[data-theme="day"] .landing-theme .text-slate-200:not(.theme-preserve-white),
+html[data-theme="day"] .landing-theme .text-slate-300:not(.theme-preserve-white) {
   color: #294737 !important;
 }
 
-html[data-theme="day"] .landing-theme button.text-white:not(.theme-preserve-white),
-html[data-theme="day"] .landing-theme a.text-white:not(.theme-preserve-white),
-html[data-theme="day"] .landing-theme [class*="bg-[#214c39"]].text-white,
-html[data-theme="day"] .landing-theme [class*="bg-[#1f6447"]].text-white {
+html[data-theme="day"] .landing-theme button.text-white,
+html[data-theme="day"] .landing-theme a.text-white,
+html[data-theme="day"] .landing-theme button .text-white,
+html[data-theme="day"] .landing-theme a .text-white {
   color: #ffffff !important;
+}
+
+/* Hero card in landing page: always dark forest green card with crisp light text in both Day & Night modes */
+.hero-card,
+html[data-theme="day"] .hero-card,
+html[data-theme="night"] .hero-card {
+  background-color: #214c39 !important;
+  color: #ffffff !important;
+}
+
+.hero-card *,
+html[data-theme="day"] .hero-card *,
+html[data-theme="night"] .hero-card * {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.hero-card [class*="bg-[#183b2c]"],
+html[data-theme="day"] .hero-card [class*="bg-[#183b2c]"],
+html[data-theme="night"] .hero-card [class*="bg-[#183b2c]"] {
+  background-color: #183b2c !important;
+}
+
+.hero-card [class*="bg-white/"],
+html[data-theme="day"] .hero-card [class*="bg-white/"],
+html[data-theme="night"] .hero-card [class*="bg-white/"] {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Headings, text, labels and questions inside hero card must stay white */
+.hero-card .text-white,
+.hero-card .font-semibold,
+.hero-card .font-medium,
+.hero-card p,
+.hero-card h1,
+.hero-card h2,
+.hero-card h3,
+.hero-card h4,
+html[data-theme="day"] .hero-card .text-white,
+html[data-theme="day"] .hero-card .font-semibold,
+html[data-theme="day"] .hero-card .font-medium,
+html[data-theme="day"] .hero-card p,
+html[data-theme="day"] .hero-card h1,
+html[data-theme="day"] .hero-card h2,
+html[data-theme="day"] .hero-card h3,
+html[data-theme="day"] .hero-card h4,
+html[data-theme="night"] .hero-card .text-white,
+html[data-theme="night"] .hero-card .font-semibold,
+html[data-theme="night"] .hero-card .font-medium,
+html[data-theme="night"] .hero-card p,
+html[data-theme="night"] .hero-card h1,
+html[data-theme="night"] .hero-card h2,
+html[data-theme="night"] .hero-card h3,
+html[data-theme="night"] .hero-card h4 {
+  color: #ffffff !important;
+}
+
+/* Muted sage-green and mint-green accents inside hero card */
+.hero-card [class*="text-[#b7d5bf]"],
+html[data-theme="day"] .hero-card [class*="text-[#b7d5bf]"],
+html[data-theme="night"] .hero-card [class*="text-[#b7d5bf]"] {
+  color: #b7d5bf !important;
+}
+
+.hero-card [class*="text-[#d7eadb]"],
+html[data-theme="day"] .hero-card [class*="text-[#d7eadb]"],
+html[data-theme="night"] .hero-card [class*="text-[#d7eadb]"] {
+  color: #d7eadb !important;
+}
+
+/* Developer initials badge and brand badges */
+html[data-theme="day"] .landing-theme [class*="bg-[#1f6447]"],
+html[data-theme="day"] .landing-theme [class*="bg-[#1f6447]"] * {
+  color: #ffffff !important;
+}
+
+/* Ensure all green landing CTA buttons keep pure white text & icons in both Day and Night modes */
+.landing-theme button[class*="bg-[#1f6447]"],
+.landing-theme button[class*="bg-[#1f6447]"] *,
+.landing-theme [class*="bg-[#1f6447]"] button,
+.landing-theme [class*="bg-[#1f6447]"] svg,
+html[data-theme="day"] .landing-theme button[class*="bg-[#1f6447]"],
+html[data-theme="day"] .landing-theme button[class*="bg-[#1f6447]"] *,
+html[data-theme="night"] .landing-theme button[class*="bg-[#1f6447]"],
+html[data-theme="night"] .landing-theme button[class*="bg-[#1f6447]"] * {
+  color: #ffffff !important;
+  fill: #ffffff !important;
+}
+
+/* Resume Uploader icon container - light pastel green in day mode, cyan-blue gradient in night mode */
+html[data-theme="day"] .resume-upload-icon {
+  background: #e8f4eb !important;
+  border-color: #c0dec8 !important;
+  color: #1f6447 !important;
+  box-shadow: 0 4px 14px rgba(31, 100, 71, 0.1) !important;
+}
+
+html[data-theme="day"] .resume-upload-icon svg {
+  color: #1f6447 !important;
+  stroke: #1f6447 !important;
+}
+
+html[data-theme="night"] .resume-upload-icon {
+  background: linear-gradient(to top right, rgba(37, 99, 235, 0.25), rgba(56, 189, 248, 0.15)) !important;
+  border-color: rgba(56, 189, 248, 0.3) !important;
+  color: #38bdf8 !important;
+}
+
+html[data-theme="night"] .resume-upload-icon svg {
+  color: #38bdf8 !important;
+  stroke: #38bdf8 !important;
+}
+
+/* Roles section (Job families) */
+html[data-theme="day"] .roles-section {
+  background-color: #ffffff !important;
+  border-color: #e8ebe6 !important;
+}
+
+html[data-theme="day"] .roles-badge {
+  color: #438062 !important;
+}
+
+html[data-theme="day"] .roles-title {
+  color: #18382b !important;
+}
+
+html[data-theme="day"] .roles-desc {
+  color: #6c7971 !important;
+}
+
+html[data-theme="day"] .role-card {
+  background-color: #fbfcfa !important;
+  border-color: #e6ebe5 !important;
+}
+
+html[data-theme="day"] .role-card-icon {
+  background-color: #e8f1e9 !important;
+  color: #347354 !important;
+}
+
+html[data-theme="day"] .role-card-title {
+  color: #254534 !important;
+}
+
+html[data-theme="day"] .role-card-desc {
+  color: #758078 !important;
+}
+
+/* Night Mode (Black theme) for Roles section */
+html[data-theme="night"] .roles-section {
+  background-color: #07090e !important;
+  border-color: #151e2e !important;
+}
+
+html[data-theme="night"] .roles-badge {
+  color: #38bdf8 !important;
+}
+
+html[data-theme="night"] .roles-title {
+  color: #f8fafc !important;
+}
+
+html[data-theme="night"] .roles-desc {
+  color: #94a3b8 !important;
+}
+
+html[data-theme="night"] .role-card {
+  background-color: #0d121d !important;
+  border-color: #192338 !important;
+}
+
+html[data-theme="night"] .role-card:hover {
+  border-color: rgba(56, 189, 248, 0.4) !important;
+  background-color: #101726 !important;
+}
+
+html[data-theme="night"] .role-card-icon {
+  background-color: #131d31 !important;
+  color: #38bdf8 !important;
+}
+
+html[data-theme="night"] .role-card-title {
+  color: #f8fafc !important;
+}
+
+html[data-theme="night"] .role-card-desc {
+  color: #94a3b8 !important;
+}
+
+/* Hero secondary button in Night Mode */
+html[data-theme="night"] .hero-secondary-btn {
+  background-color: #0d121d !important;
+  border-color: #1e293b !important;
+  color: #cbd5e1 !important;
+}
+
+html[data-theme="night"] .hero-secondary-btn:hover {
+  background-color: #141d2e !important;
+  border-color: rgba(56, 189, 248, 0.4) !important;
+  color: #38bdf8 !important;
+}
+
+/* How it works section heading & steps */
+html[data-theme="day"] .hiw-badge {
+  color: #438062 !important;
+}
+
+html[data-theme="day"] .hiw-header {
+  color: #18382b !important;
+}
+
+html[data-theme="day"] .hiw-header-desc {
+  color: #6c7971 !important;
+}
+
+html[data-theme="day"] .hiw-step {
+  color: #81a88e !important;
+}
+
+html[data-theme="day"] .hiw-icon {
+  color: #438062 !important;
+}
+
+html[data-theme="day"] .hiw-title {
+  color: #234331 !important;
+}
+
+html[data-theme="day"] .hiw-desc {
+  color: #718078 !important;
+}
+
+/* How it works in Night Mode */
+html[data-theme="night"] .hiw-badge {
+  color: #38bdf8 !important;
+}
+
+html[data-theme="night"] .hiw-header {
+  color: #f8fafc !important;
+}
+
+html[data-theme="night"] .hiw-header-desc {
+  color: #94a3b8 !important;
+}
+
+html[data-theme="night"] .hiw-step {
+  color: #38bdf8 !important;
+}
+
+html[data-theme="night"] .hiw-icon {
+  color: #38bdf8 !important;
+}
+
+html[data-theme="night"] .hiw-title {
+  color: #f8fafc !important;
+}
+
+html[data-theme="night"] .hiw-desc {
+  color: #94a3b8 !important;
+}
+
+/* Developer card in Night Mode */
+html[data-theme="night"] .dev-card {
+  background-color: #0d121d !important;
+  border-color: #1a2336 !important;
+}
+
+html[data-theme="night"] .dev-name {
+  color: #f8fafc !important;
+}
+
+html[data-theme="night"] .dev-role {
+  color: #38bdf8 !important;
+}
+
+html[data-theme="night"] .dev-badge {
+  color: #38bdf8 !important;
+}
+
+html[data-theme="night"] .dev-quote {
+  color: #cbd5e1 !important;
+}
+
+html[data-theme="night"] .dev-link {
+  background-color: #111827 !important;
+  border-color: #1e293b !important;
+  color: #38bdf8 !important;
+}
+
+html[data-theme="night"] .dev-link:hover {
+  background-color: #172236 !important;
+  color: #ffffff !important;
+}
+
+/* Bottom CTA in Night Mode */
+html[data-theme="night"] .cta-box {
+  background-color: #0c1220 !important;
+  border: 1px solid #162136 !important;
+}
+
+html[data-theme="night"] .cta-icon {
+  background-color: #131d31 !important;
+  color: #38bdf8 !important;
+}
+
+html[data-theme="night"] .cta-title {
+  color: #f8fafc !important;
+}
+
+html[data-theme="night"] .cta-desc {
+  color: #94a3b8 !important;
+}
+
+/* Active links, primary buttons, and icons inside them stay white */
+html[data-theme="day"] .app-shell .bg-blue-600,
+html[data-theme="day"] .app-shell .bg-blue-600 *,
+html[data-theme="day"] .interview-theme .bg-blue-600,
+html[data-theme="day"] .interview-theme .bg-blue-600 *,
+html[data-theme="day"] .app-shell button.bg-blue-600,
+html[data-theme="day"] .app-shell button.bg-blue-600 *,
+html[data-theme="day"] .app-shell a.bg-blue-600,
+html[data-theme="day"] .app-shell a.bg-blue-600 *,
+html[data-theme="day"] .theme-preserve-white,
+html[data-theme="day"] .theme-preserve-white *,
+html[data-theme="day"] .camera-overlay-badge,
+html[data-theme="day"] .camera-overlay-badge * {
+  color: #ffffff !important;
+}
+
+/* Candidate Camera badges on live video stay white in day mode */
+html[data-theme="day"] .interview-theme [class*="bg-black/"],
+html[data-theme="day"] .interview-theme [class*="bg-black/"] * {
+  color: #ffffff !important;
+}
+
+/* ScoreRing circular background track in day mode */
+html[data-theme="day"] .score-ring-track {
+  stroke: #dfe8df !important;
+}
+
+/* Progress bar background tracks in day mode */
+html[data-theme="day"] .app-shell [class*="bg-[#17213a]"],
+html[data-theme="day"] .interview-theme [class*="bg-[#17213a]"] {
+  background-color: #e2ece2 !important;
+}
+
+/* Recharts grid lines & axis labels in day mode */
+html[data-theme="day"] .recharts-cartesian-grid-horizontal line,
+html[data-theme="day"] .recharts-cartesian-grid-vertical line,
+html[data-theme="day"] .recharts-polar-grid line,
+html[data-theme="day"] .recharts-polar-grid path {
+  stroke: #e2ece2 !important;
+}
+
+html[data-theme="day"] .recharts-polar-angle-axis text,
+html[data-theme="day"] .recharts-cartesian-axis text {
+  fill: #6d7c71 !important;
 }
 
 html[data-theme="day"] .app-shell .bg-blue-600,
@@ -306,6 +689,8 @@ html[data-theme="day"] .theme-toggle:hover {
 }
 
 /* Keep the public page and its navigation in the same theme as the workspace. */
+
+/* Night mode landing page overrides */
 html[data-theme="night"] .landing-theme,
 html[data-theme="night"] .site-nav,
 html[data-theme="night"] .site-mobile-menu {
@@ -333,15 +718,133 @@ html[data-theme="night"] .site-mobile-menu [class*="text-[#"] {
   color: #cbd5d1 !important;
 }
 
-html[data-theme="day"] .landing-theme [class*="from-blue-600"],
-html[data-theme="day"] .landing-theme [class*="to-sky-500"] {
-  --tw-gradient-from: #1f6447 !important;
-  --tw-gradient-to: #438062 !important;
+/* Navbar brand logo, text & links */
+.site-nav .nav-brand-name {
+  color: #18382b;
 }
 
-html[data-theme="day"] .landing-theme .text-sky-400,
-html[data-theme="day"] .landing-theme .text-blue-400 {
+html[data-theme="day"] .site-nav {
+  background-color: rgba(247, 246, 242, 0.95) !important;
+  border-color: #e2e8e1 !important;
+}
+
+html[data-theme="day"] .nav-brand-name {
+  color: #18382b !important;
+}
+
+html[data-theme="day"] .nav-brand-sub {
+  color: #77857d !important;
+}
+
+html[data-theme="day"] .nav-brand-ai {
   color: #347354 !important;
+}
+
+html[data-theme="day"] .nav-menu-btn {
+  color: #345244 !important;
+}
+
+html[data-theme="day"] .nav-menu-btn:hover {
+  background-color: #e8eee7 !important;
+}
+
+html[data-theme="day"] .site-mobile-menu {
+  background-color: #f7f6f2 !important;
+  border-color: #e2e8e1 !important;
+}
+
+html[data-theme="day"] .mobile-nav-link {
+  color: #254534 !important;
+}
+
+html[data-theme="day"] .mobile-nav-link:hover {
+  color: #2563eb !important;
+  background-color: #eef3ee !important;
+}
+
+html[data-theme="day"] .mobile-nav-muted {
+  color: #6c7971 !important;
+}
+
+html[data-theme="day"] .nav-link {
+  color: #526159 !important;
+}
+
+html[data-theme="day"] .nav-link:hover {
+  color: #2563eb !important;
+}
+
+html[data-theme="night"] .site-nav {
+  background-color: rgba(7, 9, 14, 0.9) !important;
+  border-color: #141c2e !important;
+}
+
+html[data-theme="night"] .nav-brand-name {
+  color: #ffffff !important;
+}
+
+html[data-theme="night"] .nav-brand-sub {
+  color: #94a3b8 !important;
+}
+
+html[data-theme="night"] .nav-brand-ai {
+  color: #4ade80 !important;
+}
+
+html[data-theme="night"] .nav-menu-btn {
+  color: #94a3b8 !important;
+}
+
+html[data-theme="night"] .nav-menu-btn:hover {
+  background-color: #131d31 !important;
+  color: #f8fafc !important;
+}
+
+html[data-theme="night"] .site-mobile-menu {
+  background-color: #0b101c !important;
+  border-color: #172238 !important;
+}
+
+html[data-theme="night"] .mobile-nav-link {
+  color: #cbd5e1 !important;
+}
+
+html[data-theme="night"] .mobile-nav-link:hover {
+  color: #38bdf8 !important;
+  background-color: #131d31 !important;
+}
+
+html[data-theme="night"] .mobile-nav-muted {
+  color: #64748b !important;
+}
+
+html[data-theme="night"] .nav-link {
+  color: #94a3b8 !important;
+}
+
+html[data-theme="night"] .nav-link:hover {
+  color: #38bdf8 !important;
+}
+
+/* Ensure Start Practice button is always vibrant blue with pure white text in both themes */
+.site-nav .bg-blue-600,
+.site-nav .bg-blue-600 *,
+.landing-theme .bg-blue-600,
+.landing-theme .bg-blue-600 *,
+html[data-theme="day"] .site-nav .bg-blue-600,
+html[data-theme="day"] .site-nav .bg-blue-600 *,
+html[data-theme="night"] .site-nav .bg-blue-600,
+html[data-theme="night"] .site-nav .bg-blue-600 * {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+  fill: #ffffff !important;
+}
+
+.site-nav .bg-blue-600:hover,
+.landing-theme .bg-blue-600:hover,
+html[data-theme="day"] .site-nav .bg-blue-600:hover,
+html[data-theme="night"] .site-nav .bg-blue-600:hover {
+  background-color: #1d4ed8 !important;
 }
 
 html[data-theme="night"] .landing-theme button.text-white,

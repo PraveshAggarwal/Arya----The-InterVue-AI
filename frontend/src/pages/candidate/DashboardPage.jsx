@@ -61,7 +61,7 @@ export const DashboardPage = () => {
           </div>
           <button
             onClick={() => navigate('/interview/setup')}
-            className="px-5 py-3 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white shadow-xl shadow-blue-600/30 border border-blue-400/25 flex items-center gap-2 transition-all hover:scale-105 active:scale-95 self-start cursor-pointer"
+            className="px-5 py-3 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white shadow-xl shadow-blue-600/30 border border-blue-400/25 flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 w-full sm:w-auto cursor-pointer shrink-0"
           >
             <Play className="w-4 h-4 fill-white" />
             <span>Start Interview</span>

@@ -1,14 +1,38 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Mic, StopCircle } from 'lucide-react';
+import { useLocation, useNavigate, useParams, Link } from 'react-router-dom';
+import {
+  Mic,
+  MicOff,
+  StopCircle,
+  Volume2,
+  Video,
+  ArrowRight,
+  Bot,
+  CheckCircle2,
+  AlertCircle,
+  RotateCcw,
+  Sparkles,
+  ShieldCheck,
+  Send,
+  Loader2,
+  LayoutDashboard,
+  History
+} from 'lucide-react';
 import { AIAvatar } from '../../components/interview/AIAvatar';
 import { CandidateCamera } from '../../components/interview/CandidateCamera';
 import { ScoreMetricsGrid } from '../../components/reports/ScoreMetricsGrid';
 import { QuestionReviewList } from '../../components/reports/QuestionReviewList';
+import { WaveformVisualizer } from '../../components/common/WaveformVisualizer';
 import { useSpeech } from '../../hooks/useSpeech';
 import { interviewService, questionService } from '../../services/api';
 
-const PHASE = { INTRO: 'intro', SPEAKING: 'speaking', LISTENING: 'listening', THINKING: 'thinking', DONE: 'done' };
+const PHASE = {
+  INTRO: 'intro',
+  SPEAKING: 'speaking',
+  LISTENING: 'listening',
+  THINKING: 'thinking',
+  DONE: 'done'
+};
 
 export const InterviewQuestionsPage = () => {
   const { id } = useParams();
@@ -34,6 +58,7 @@ export const InterviewQuestionsPage = () => {
   const [savedRemarks, setSavedRemarks] = useState('');
   const [savedTranscript, setSavedTranscript] = useState([]);
   const [report, setReport] = useState(null);
+  const [showEndConfirm, setShowEndConfirm] = useState(false);
 
   const { speaking, listening, speak, listen, stopListening, stopAll } = useSpeech();
 
@@ -63,7 +88,7 @@ export const InterviewQuestionsPage = () => {
       });
       setMediaStream(stream);
     } catch {
-      setMediaPermissionError('Camera and microphone permission is required before the interview can start.');
+      setMediaPermissionError('Camera and microphone permissions are required to participate in the mock interview.');
     } finally {
       setRequestingMedia(false);
     }
@@ -88,7 +113,7 @@ export const InterviewQuestionsPage = () => {
       });
   }, [id]);
 
-  // Start interview once questions are loaded
+  // Start interview once questions and media stream are ready
   useEffect(() => {
     if (interviewLoaded && interviewStatus === 'draft' && mediaStream && questions.length && phase === PHASE.INTRO) {
       const first = questions[0]?.questionText;
@@ -97,13 +122,13 @@ export const InterviewQuestionsPage = () => {
         setPhase(PHASE.SPEAKING);
         questionStartTimerRef.current = setTimeout(() => {
           speak(
-            `Hi, I'm Arya. Thanks for joining me today. We'll talk about your experience and the ${role} role. Take a moment to think before answering, and let me know if you'd like me to repeat a question.`,
+            `Hi, I'm Arya you AI Interviewr Developed by Pravesh Aggarwal. Thanks for joining me today. We'll talk about your experience and the ${role} role. Take a moment to think before answering, and let me know if you'd like me to repeat a question.`,
             () => askQuestion(first),
           );
         }, 800);
       }
     }
-  }, [questions, interviewLoaded, interviewStatus, mediaStream, role, speak]);
+  }, [questions, interviewLoaded, interviewStatus, mediaStream, role, speak, phase]);
 
   useEffect(() => () => {
     mediaStream?.getTracks().forEach((track) => track.stop());
@@ -134,7 +159,7 @@ export const InterviewQuestionsPage = () => {
     if (endedRef.current || turnId !== turnRef.current) return;
     setPhase(PHASE.LISTENING);
     clearTimeout(silenceTimerRef.current);
-    // Ignore the short tail of Arya's own audio picked up by the microphone.
+    // Ignore the short tail of Arya's own audio picked up by the microphone
     const acceptSpeechAfter = Date.now() + 800;
     silenceTimerRef.current = setTimeout(() => {
       if (endedRef.current || turnId !== turnRef.current || answerRef.current.trim()) return;
@@ -153,19 +178,27 @@ export const InterviewQuestionsPage = () => {
         );
       });
     }, 15000);
+
     listen(
       (interim) => {
         if (endedRef.current || turnId !== turnRef.current || Date.now() < acceptSpeechAfter) return;
-        setLiveTranscript(interim); answerRef.current = interim;
+        setLiveTranscript(interim);
+        answerRef.current = interim;
         if (interim.trim()) noInputPromptedRef.current = 0;
         clearTimeout(silenceTimerRef.current);
-        if (interim.trim()) silenceTimerRef.current = setTimeout(() => {
-          if (turnId === turnRef.current) submitAnswerRef.current?.();
-        }, 10000);
+        if (interim.trim()) {
+          silenceTimerRef.current = setTimeout(() => {
+            if (turnId === turnRef.current) submitAnswerRef.current?.();
+          }, 10000);
+        }
       },
       (final) => {
         if (endedRef.current || turnId !== turnRef.current || Date.now() < acceptSpeechAfter) return;
-        if (final) { answerRef.current = final; setLiveTranscript(final); if (final.trim()) noInputPromptedRef.current = 0; }
+        if (final) {
+          answerRef.current = final;
+          setLiveTranscript(final);
+          if (final.trim()) noInputPromptedRef.current = 0;
+        }
         if (final.trim()) {
           clearTimeout(silenceTimerRef.current);
           silenceTimerRef.current = setTimeout(() => {
@@ -202,8 +235,8 @@ export const InterviewQuestionsPage = () => {
       const next = res.data;
       if (endedRef.current) return;
       if (next.action === 'complete') {
-        setRemarks(next.remarks || 'Thank you for completing the interview. Your responses showed your current strengths and areas to keep developing.');
         const finalRemarks = next.remarks || 'Thank you for completing the interview. Your responses showed your current strengths and areas to keep developing.';
+        setRemarks(finalRemarks);
         const closing = next.response || 'Thank you for sharing your experience with me. That concludes our interview.';
         setPhase(PHASE.SPEAKING);
         speak(closing, () => finishInterviewRef.current?.(finalRemarks, newHistory));
@@ -227,7 +260,6 @@ export const InterviewQuestionsPage = () => {
       }
     } catch {
       if (endedRef.current) return;
-      // Keep the interview moving if question generation is temporarily unavailable.
       const nextIndex = currentIndex + 1;
       if (nextIndex >= questions.length) {
         await finishInterview('The interview ended after a temporary issue generating the next question.');
@@ -238,8 +270,9 @@ export const InterviewQuestionsPage = () => {
         setCurrentQuestion(nextQ);
         askQuestion(nextQ, false, 'Thank you. Let’s move on to another question.');
       }
+    } finally {
+      processingRef.current = false;
     }
-    finally { processingRef.current = false; }
   }, [currentQuestion, currentIndex, followupCount, history, questions, role, id, askQuestion, stopListening, speak]);
 
   submitAnswerRef.current = submitAnswer;
@@ -265,11 +298,11 @@ export const InterviewQuestionsPage = () => {
           return;
         }
       } catch {
-        // Show the original save error and let the candidate retry.
+        // Fall through to show error
       }
       setEndError(error.response?.data?.message || 'Could not save the completed interview. Retry to finish saving it.');
     }
-  }, [id, navigate, remarks, history]);
+  }, [id, remarks, history]);
 
   const finishInterview = useCallback(async (finalRemarks = remarks, transcript = history) => {
     if (endedRef.current) return;
@@ -284,162 +317,489 @@ export const InterviewQuestionsPage = () => {
     await saveEndedInterview(finalRemarks, transcript);
     setIsEnding(false);
   }, [stopAll, saveEndedInterview, remarks, mediaStream, history]);
+
   finishInterviewRef.current = finishInterview;
 
-  const progress = questions.length ? Math.round(((currentIndex) / questions.length) * 100) : 0;
+  const progress = questions.length ? Math.min(100, Math.round(((currentIndex) / questions.length) * 100)) : 0;
 
+  // 1. Loading Screen
   if (!interviewLoaded) {
-    return <div className="min-h-screen flex items-center justify-center bg-[#07090e] text-sm text-slate-400">Loading interview...</div>;
-  }
-
-  if (interviewStatus === 'completed') {
     return (
-      <div className="max-w-4xl mx-auto p-6 space-y-5">
-        <div>
-          <p className="text-xs uppercase tracking-wider text-emerald-400">Interview completed</p>
-          <h1 className="text-3xl font-black text-white mt-1">{role}</h1>
-          <p className="text-sm text-slate-400 mt-2">This interview has ended. Your transcript and AI performance assessment are available below.</p>
+      <div className="min-h-screen bg-[#07090e] flex flex-col items-center justify-center gap-4 text-slate-300">
+        <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 via-sky-500 to-cyan-400 p-0.5 shadow-xl shadow-sky-500/20 animate-pulse">
+          <div className="w-full h-full bg-[#07090e] rounded-[14px] flex items-center justify-center">
+            <Bot className="w-7 h-7 text-sky-400" />
+          </div>
         </div>
-        {savedRemarks && <div className="rounded-2xl border border-sky-500/20 bg-[#0d1526] p-5"><p className="text-xs uppercase tracking-wider text-sky-400 mb-2 font-semibold">Interview remarks</p><p className="text-sm text-slate-200 leading-relaxed">{savedRemarks}</p></div>}
-        {report && <ScoreMetricsGrid report={report} />}
-        <QuestionReviewList reviews={report?.questionReviews || savedTranscript} />
-        <button onClick={() => navigate('/history')} className="px-5 py-3 rounded-xl bg-blue-600 text-white font-semibold">Back to history</button>
+        <div className="text-center">
+          <h2 className="text-base font-bold text-white">Preparing Your Interview Studio</h2>
+          <p className="text-xs text-slate-400 mt-1">Connecting session and retrieving question blueprints...</p>
+        </div>
       </div>
     );
   }
 
-  if (interviewStatus === 'unavailable') {
-    return <div className="max-w-3xl mx-auto p-8 text-center text-slate-300">Could not load this interview. Return to history and try again.</div>;
+  // 2. Completed Debrief Screen
+  if (interviewStatus === 'completed') {
+    return (
+      <div className="min-h-screen bg-[#07090e] text-slate-100 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-300">
+          
+          {/* Header Banner */}
+          <div className="p-8 rounded-3xl bg-gradient-to-r from-[#0d1629] via-[#09101e] to-[#070b16] border border-sky-500/30 relative overflow-hidden shadow-2xl">
+            <div className="absolute right-0 top-0 w-96 h-96 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
+            
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="space-y-2">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-xs font-bold uppercase tracking-wider">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  Interview Completed
+                </span>
+                <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight">{role}</h1>
+                <p className="text-xs sm:text-sm text-slate-300 max-w-xl leading-relaxed">
+                  Your mock session with Arya has concluded. A full transcript analysis, scoring breakdown, and executive feedback are generated below.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                <button
+                  onClick={() => navigate('/history')}
+                  className="px-5 py-2.5 rounded-xl text-xs font-semibold bg-[#11192e] hover:bg-[#18233d] text-slate-200 hover:text-white border border-[#1f2b48] flex items-center gap-2 transition-all"
+                >
+                  <History className="w-4 h-4 text-sky-400" />
+                  <span>Interview History</span>
+                </button>
+                <button
+                  onClick={() => navigate('/dashboard')}
+                  className="px-5 py-2.5 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-600/30 flex items-center gap-2 transition-all"
+                >
+                  <LayoutDashboard className="w-4 h-4" />
+                  <span>Dashboard</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Remarks Card */}
+          {savedRemarks && (
+            <div className="p-6 rounded-2xl border border-sky-500/25 bg-[#0b1120] relative">
+              <div className="flex items-center gap-2 mb-2">
+                <Sparkles className="w-4 h-4 text-sky-400" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-sky-400">Arya's Executive Remarks</h3>
+              </div>
+              <p className="text-sm text-slate-200 leading-relaxed font-normal">
+                "{savedRemarks}"
+              </p>
+            </div>
+          )}
+
+          {/* Detailed Score Metrics */}
+          {report && <ScoreMetricsGrid report={report} />}
+
+          {/* Full Question Breakdown */}
+          <QuestionReviewList reviews={report?.questionReviews || savedTranscript} />
+
+          {/* Footer CTAs */}
+          <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-[#141d33]">
+            <Link to="/interview/setup" className="text-xs text-sky-400 hover:text-sky-300 font-semibold flex items-center gap-1.5">
+              <span>Start Another Mock Interview</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+            <span className="text-xs text-slate-500">
+              Session ID: <span className="font-mono text-slate-400">{id}</span>
+            </span>
+          </div>
+
+        </div>
+      </div>
+    );
   }
 
-  if (!mediaStream) {
+  // 3. Unavailable Screen
+  if (interviewStatus === 'unavailable') {
     return (
-      <div className="min-h-screen bg-[#07090e] flex items-center justify-center p-6">
-        <div className="w-full max-w-md rounded-3xl border border-sky-500/20 bg-[#0d1526] p-8 text-center shadow-2xl shadow-sky-950/30">
-          <AIAvatar />
-          <h1 className="mt-8 text-2xl font-black text-white">Ready to meet Arya?</h1>
-          <p className="mt-3 text-sm leading-relaxed text-slate-400">Enable your camera and microphone to begin the interview. Arya will not start until both permissions are granted.</p>
-          {mediaPermissionError && <p className="mt-4 rounded-xl bg-rose-500/10 p-3 text-xs text-rose-300">{mediaPermissionError}</p>}
-          <button onClick={requestMediaAccess} disabled={requestingMedia} className="mt-6 w-full rounded-xl bg-linear-to-r from-blue-600 to-sky-500 px-5 py-3 font-bold text-white disabled:opacity-60">
-            {requestingMedia ? 'Requesting permission…' : 'Enable camera and microphone'}
+      <div className="min-h-screen bg-[#07090e] flex items-center justify-center p-6 text-center">
+        <div className="max-w-md w-full p-8 rounded-3xl bg-[#0c1220] border border-rose-500/20 shadow-2xl">
+          <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center mx-auto mb-4 text-rose-400">
+            <AlertCircle className="w-6 h-6" />
+          </div>
+          <h2 className="text-lg font-bold text-white">Interview Session Unavailable</h2>
+          <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+            We couldn't retrieve the questions or metadata for this session. It might have expired or been removed.
+          </p>
+          <button
+            onClick={() => navigate('/history')}
+            className="mt-6 w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all"
+          >
+            Return to Interview History
           </button>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-[#07090e] flex flex-col">
-      {/* Top bar */}
-      <div className="flex items-center justify-between px-6 py-3 border-b border-[#141d33] bg-[#080c16]">
-        <div className="flex items-center gap-3">
-          <span className="text-xs font-bold text-white">{role}</span>
+  // 4. Pre-interview Media Permission Check-in Screen
+  if (!mediaStream) {
+    return (
+      <div className="min-h-screen bg-[#07090e] flex items-center justify-center p-4 sm:p-6">
+        <div className="w-full max-w-lg rounded-3xl border border-sky-500/25 bg-[#0b1120] p-8 shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="text-center relative z-10">
+            <div className="flex justify-center mb-6">
+              <AIAvatar size="large" />
+            </div>
+
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-600/10 border border-blue-500/25 text-xs text-blue-400 font-semibold mb-3">
+              <Video className="w-3.5 h-3.5" />
+              Studio Check-in
+            </div>
+
+            <h1 className="text-2xl sm:text-3xl font-black text-white">Ready to meet Arya?</h1>
+            <p className="mt-2 text-xs sm:text-sm text-slate-300 leading-relaxed">
+              Your mock interview for <strong className="text-sky-300">{role}</strong> is ready. To ensure an authentic simulation, please grant camera and microphone access.
+            </p>
+
+            {/* Checklist */}
+            <div className="mt-6 p-4 rounded-xl bg-[#080d18] border border-[#162138] text-left space-y-2.5 text-xs text-slate-300">
+              <div className="flex items-center gap-2.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>Camera feed stays 100% private in your browser sandbox</span>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>Microphone is used for live, continuous speech recognition</span>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>Arya will wait patiently while you form your thoughts</span>
+              </div>
+            </div>
+
+            {mediaPermissionError && (
+              <div className="mt-4 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-xs text-rose-300 flex items-start gap-2 text-left">
+                <AlertCircle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
+                <span>{mediaPermissionError}</span>
+              </div>
+            )}
+
+            <button
+              onClick={requestMediaAccess}
+              disabled={requestingMedia}
+              className="mt-6 w-full rounded-xl bg-gradient-to-r from-blue-600 to-sky-500 hover:from-blue-500 hover:to-sky-400 py-3.5 px-5 font-bold text-white text-xs sm:text-sm shadow-xl shadow-blue-500/25 transition-all disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2"
+            >
+              {requestingMedia ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Requesting hardware access...</span>
+                </>
+              ) : (
+                <>
+                  <span>Enable Camera & Enter Studio</span>
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
+            </button>
+
+            <div className="mt-4">
+              <button
+                onClick={() => navigate('/interview/setup')}
+                className="text-xs text-slate-400 hover:text-white transition-colors"
+              >
+                Cancel and return to interview setup
+              </button>
+            </div>
+          </div>
         </div>
-        {/* Progress bar */}
-        <div className="flex-1 mx-8 h-1.5 bg-[#1b2640] rounded-full overflow-hidden">
-          <div
-            className="h-full bg-linear-to-r from-blue-600 to-sky-400 rounded-full transition-all duration-500"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-        <button
-          onClick={() => finishInterview()}
-          className="flex items-center gap-1.5 text-xs text-rose-400 hover:text-rose-300 border border-rose-500/30 hover:border-rose-400 px-3 py-1.5 rounded-lg transition-all"
-        >
-          <StopCircle className="w-3.5 h-3.5" />
-          End
-        </button>
       </div>
+    );
+  }
 
-      {/* Main layout */}
-      <div className="flex-1 flex flex-col lg:flex-row gap-0">
+  // 5. Active Studio Interview Room
+  return (
+    <div className="min-h-screen bg-[#07090e] text-slate-100 flex flex-col select-none">
+      
+      {/* Sleek Top Studio Bar */}
+      <header className="h-16 px-4 sm:px-8 border-b border-[#141d33] bg-[#080d18]/90 backdrop-blur-md flex items-center justify-between shrink-0 z-30">
+        
+        {/* Left: Role and Brand */}
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-sky-400 p-0.5 shadow-md shadow-sky-500/20">
+            <div className="w-full h-full bg-[#07090e] rounded-[6px] flex items-center justify-center">
+              <Bot className="w-4 h-4 text-sky-400" />
+            </div>
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-white tracking-tight">{role}</span>
+              <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20">
+                Live Studio
+              </span>
+            </div>
+            <p className="text-[10px] text-slate-400 hidden sm:block">AI-Assisted Technical Assessment</p>
+          </div>
+        </div>
 
-        {/* Left — AI Avatar */}
-        <div className="flex-1 flex flex-col items-center justify-center gap-8 p-8 bg-linear-to-b from-[#080c16] to-[#07090e]">
-          <AIAvatar speaking={speaking} thinking={phase === PHASE.THINKING} />
-
-          {/* Current question bubble */}
-          <div className="max-w-lg w-full">
-            <div className="bg-[#0d1526] border border-sky-500/20 rounded-2xl p-5 shadow-xl shadow-sky-500/5">
-              <p className="text-[10px] uppercase tracking-wider text-sky-400 mb-2 font-semibold">
-                {phase === PHASE.THINKING ? 'Processing your answer...' : phase === PHASE.DONE ? 'Interview complete' : 'Current Question'}
-              </p>
-              <p className="text-sm text-white leading-relaxed font-medium">
-                {currentQuestion || 'Preparing your interview...'}
-              </p>
+        {/* Center: Stepper & Progress */}
+        <div className="flex items-center gap-4 max-w-xs sm:max-w-md w-full mx-4">
+          <div className="flex-1">
+            <div className="flex items-center justify-between text-[11px] mb-1">
+              <span className="font-semibold text-slate-300">
+                Question <strong className="text-sky-400">{currentIndex + 1}</strong> of {questions.length}
+              </span>
+              <span className="text-slate-400 font-mono text-[10px]">{progress}% Completed</span>
+            </div>
+            <div className="h-1.5 w-full bg-[#151f36] rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-blue-600 via-sky-400 to-cyan-300 rounded-full transition-all duration-500"
+                style={{ width: `${progress}%` }}
+              />
             </div>
           </div>
         </div>
 
-        {/* Right — Candidate */}
-        <div className="w-full lg:w-80 flex flex-col gap-4 p-4 bg-[#080c16] border-l border-[#141d33]">
-
-          {/* Webcam */}
-          <CandidateCamera stream={mediaStream} />
-
-          {/* Live transcript */}
-          <div className="flex-1 bg-[#0a0f1d] border border-[#1b2640] rounded-2xl p-4 min-h-30">
-            <p className="text-[10px] uppercase tracking-wider text-slate-500 mb-2 font-semibold">Your Answer</p>
-            {listening && !liveTranscript && (
-              <div className="flex items-center gap-2 text-sky-400">
-                <span className="flex gap-1">
-                  {[0, 1, 2].map((i) => (
-                    <span
-                      key={i}
-                      className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-bounce"
-                      style={{ animationDelay: `${i * 0.15}s` }}
-                    />
-                  ))}
-                </span>
-                <span className="text-xs">Listening...</span>
-              </div>
-            )}
-            <p className="text-sm text-slate-200 leading-relaxed">
-              {liveTranscript || (phase === PHASE.SPEAKING ? 'Listen to the question...' : '')}
-            </p>
-          </div>
-
-          {/* Controls */}
-          <div className="flex flex-col gap-2">
-            {phase === PHASE.SPEAKING && (
-              <div className="flex items-center justify-center gap-2 py-3 text-xs text-sky-400">
-                <Mic className="w-4 h-4 animate-pulse" />
-                AI is speaking...
-              </div>
-            )}
-
-            {phase === PHASE.THINKING && (
-              <div className="flex items-center justify-center gap-2 py-3 text-xs text-violet-400">
-                <span className="animate-spin">⚙</span>
-                Generating next question...
-              </div>
-            )}
-
-            {phase === PHASE.DONE && (
-              <div className="space-y-3 text-center">
-                <p className="text-sm text-emerald-400 font-semibold py-3">Interview ended</p>
-                {isEnding && <p className="text-xs text-slate-400">Saving transcript and generating your performance report...</p>}
-                {endError && <>
-                  <p className="text-xs text-rose-400">{endError}</p>
-                  <button onClick={() => saveEndedInterview()} className="w-full py-2.5 rounded-xl text-xs font-semibold text-white bg-blue-600">Retry save and finish</button>
-                </>}
-              </div>
-            )}
-          </div>
-
-          {/* Question counter dots */}
-          <div className="flex flex-wrap gap-1.5 justify-center pb-2">
-            {questions.map((_, i) => (
-              <div
-                key={i}
-                className={`w-2 h-2 rounded-full transition-all ${
-                  i < currentIndex ? 'bg-emerald-500' : i === currentIndex ? 'bg-sky-400 scale-125' : 'bg-[#1b2640]'
-                }`}
-              />
-            ))}
-          </div>
+        {/* Right: End Session Button */}
+        <div className="flex items-center gap-2">
+          {showEndConfirm ? (
+            <div className="flex items-center gap-1.5 animate-in fade-in">
+              <button
+                onClick={() => finishInterview()}
+                className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold shadow-md shadow-rose-600/30 transition-all"
+              >
+                Confirm End
+              </button>
+              <button
+                onClick={() => setShowEndConfirm(false)}
+                className="px-2.5 py-1.5 rounded-lg bg-[#141d33] hover:bg-[#1a253e] text-slate-300 text-xs transition-all"
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowEndConfirm(true)}
+              className="flex items-center gap-1.5 text-xs text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 px-3.5 py-1.5 rounded-xl transition-all cursor-pointer"
+            >
+              <StopCircle className="w-3.5 h-3.5" />
+              <span>End Call</span>
+            </button>
+          )}
         </div>
-      </div>
+      </header>
+
+      {/* Main Studio Body */}
+      <main className="flex-1 p-4 sm:p-6 lg:p-8 flex flex-col lg:flex-row gap-6 max-w-7xl mx-auto w-full items-stretch">
+        
+        {/* Left Primary Tile: AI Interviewer Arya */}
+        <div className="flex-1 rounded-3xl bg-gradient-to-b from-[#0a0f1d] via-[#080d1a] to-[#070b16] border border-[#17233d] p-6 sm:p-8 flex flex-col justify-between shadow-2xl relative overflow-hidden">
+          
+          {/* Subtle studio glow */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-sky-500/5 rounded-full blur-3xl pointer-events-none" />
+
+          {/* Top Status Badge */}
+          <div className="flex items-center justify-between relative z-10">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0d1629] border border-[#1b2742] text-xs">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="font-semibold text-slate-200">Arya</span>
+              <span className="text-[10px] text-slate-400">· Senior Interview Lead</span>
+            </div>
+
+            {/* Current Phase Pill */}
+            <div>
+              {phase === PHASE.SPEAKING && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-500/15 border border-sky-500/30 text-sky-300 text-xs font-semibold animate-pulse">
+                  <Volume2 className="w-3.5 h-3.5 text-sky-400" />
+                  Arya Speaking
+                </span>
+              )}
+
+              {phase === PHASE.LISTENING && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-semibold">
+                  <Mic className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+                  Listening to Candidate
+                </span>
+              )}
+
+              {phase === PHASE.THINKING && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-500/15 border border-violet-500/30 text-violet-300 text-xs font-semibold">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-violet-400" />
+                  Analyzing Response
+                </span>
+              )}
+
+              {phase === PHASE.DONE && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-semibold">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                  Session Finished
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Center Stage: AI Avatar Visualizer */}
+          <div className="py-6 flex flex-col items-center justify-center relative z-10">
+            <AIAvatar speaking={speaking} thinking={phase === PHASE.THINKING} size="large" />
+          </div>
+
+          {/* Bottom Card: Current Question */}
+          <div className="relative z-10 w-full">
+            <div className="p-5 sm:p-6 rounded-2xl bg-[#0d1424]/90 backdrop-blur-md border border-sky-500/25 shadow-xl">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-sky-400 flex items-center gap-1.5">
+                  <Sparkles className="w-3 h-3 text-sky-400" />
+                  {phase === PHASE.THINKING
+                    ? 'Processing your response...'
+                    : phase === PHASE.DONE
+                    ? 'Interview concluded'
+                    : `Question ${currentIndex + 1} of ${questions.length}`}
+                </span>
+                
+                {phase === PHASE.LISTENING && (
+                  <button
+                    onClick={() => speak(`Let me repeat the question: ${currentQuestion}`)}
+                    className="text-[11px] text-slate-400 hover:text-sky-300 flex items-center gap-1 transition-colors cursor-pointer"
+                    title="Repeat Question"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                    <span>Repeat</span>
+                  </button>
+                )}
+              </div>
+
+              <p className="text-sm sm:text-base text-white font-medium leading-relaxed">
+                {currentQuestion || 'Preparing your interview questions...'}
+              </p>
+            </div>
+          </div>
+
+        </div>
+
+        {/* Right Secondary Column: Candidate Studio Feed & Transcript */}
+        <div className="w-full lg:w-96 flex flex-col gap-4 shrink-0">
+          
+          {/* Candidate Camera Stream Tile */}
+          <CandidateCamera stream={mediaStream} isListening={listening} />
+
+          {/* Real-time Transcription & Response Card */}
+          <div className="flex-1 rounded-2xl bg-[#090e1c] border border-[#17223b] p-5 flex flex-col justify-between shadow-lg">
+            
+            <div>
+              <div className="flex items-center justify-between mb-3 pb-2 border-b border-[#141d33]">
+                <div className="flex items-center gap-1.5">
+                  <Mic className={`w-3.5 h-3.5 ${listening ? 'text-emerald-400 animate-pulse' : 'text-slate-400'}`} />
+                  <span className="text-xs font-bold text-slate-200">Your Spoken Answer</span>
+                </div>
+                {listening && (
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-mono border border-emerald-500/20 animate-pulse">
+                    LIVE MIC
+                  </span>
+                )}
+              </div>
+
+              {/* Spoken text area */}
+              <div className="min-h-36 max-h-56 overflow-y-auto pr-1 text-xs sm:text-sm text-slate-200 leading-relaxed font-sans">
+                {liveTranscript ? (
+                  <p className="italic text-slate-100">{liveTranscript}</p>
+                ) : phase === PHASE.LISTENING ? (
+                  <div className="text-slate-400 flex flex-col items-center justify-center py-8 text-center gap-2">
+                    <div className="flex gap-1.5">
+                      {[0, 1, 2, 3].map((i) => (
+                        <span
+                          key={i}
+                          className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-bounce"
+                          style={{ animationDelay: `${i * 0.15}s` }}
+                        />
+                      ))}
+                    </div>
+                    <span className="text-xs">Arya is listening... Speak your answer clearly.</span>
+                  </div>
+                ) : phase === PHASE.SPEAKING ? (
+                  <div className="text-slate-400 text-center py-8 text-xs">
+                    Please listen as Arya reads the question.
+                  </div>
+                ) : phase === PHASE.THINKING ? (
+                  <div className="text-violet-300 text-center py-8 text-xs flex flex-col items-center gap-2">
+                    <Loader2 className="w-5 h-5 animate-spin text-violet-400" />
+                    <span>Evaluating your answer and deciding follow-up...</span>
+                  </div>
+                ) : (
+                  <p className="text-slate-400 text-xs">Ready for question response...</p>
+                )}
+              </div>
+            </div>
+
+            {/* Action Buttons for Candidate */}
+            <div className="mt-4 pt-3 border-t border-[#141d33] space-y-2.5">
+              
+              {/* Active Voice Status indicator */}
+              {phase === PHASE.LISTENING && (
+                <div className="py-2.5 px-4 rounded-xl bg-[#0d1629] border border-emerald-500/25 flex items-center justify-center gap-2 text-xs text-emerald-400 font-medium">
+                  <Mic className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+                  <span>Arya is listening... Speak your answer</span>
+                </div>
+              )}
+
+              {phase === PHASE.THINKING && (
+                <div className="py-2 text-center text-xs text-violet-300 font-medium">
+                  Generating evaluation & next turn...
+                </div>
+              )}
+
+              {phase === PHASE.SPEAKING && (
+                <div className="py-2 text-center text-xs text-sky-400 font-medium flex items-center justify-center gap-2">
+                  <Volume2 className="w-3.5 h-3.5 animate-pulse" />
+                  <span>Arya is speaking...</span>
+                </div>
+              )}
+
+              {phase === PHASE.DONE && (
+                <div className="space-y-2 text-center">
+                  <p className="text-xs text-emerald-400 font-bold">Interview Concluded</p>
+                  {isEnding && (
+                    <div className="flex items-center justify-center gap-2 text-xs text-slate-300">
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-sky-400" />
+                      <span>Saving transcript and synthesizing performance scorecard...</span>
+                    </div>
+                  )}
+                  {endError && (
+                    <div className="space-y-1.5">
+                      <p className="text-xs text-rose-400">{endError}</p>
+                      <button
+                        onClick={() => saveEndedInterview()}
+                        className="w-full py-2 rounded-xl text-xs font-semibold text-white bg-blue-600 hover:bg-blue-500"
+                      >
+                        Retry saving report
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Question Stepper Dots */}
+              <div className="flex items-center justify-center gap-1.5 pt-2">
+                {questions.map((_, i) => (
+                  <div
+                    key={i}
+                    title={`Question ${i + 1}`}
+                    className={`h-2 rounded-full transition-all duration-300 ${
+                      i < currentIndex
+                        ? 'w-4 bg-emerald-500'
+                        : i === currentIndex
+                        ? 'w-6 bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.5)]'
+                        : 'w-2 bg-[#1b2640]'
+                    }`}
+                  />
+                ))}
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </main>
+
     </div>
   );
 };

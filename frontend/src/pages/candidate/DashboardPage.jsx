@@ -4,8 +4,8 @@ import { TrendingUp, Video, Award, Clock, Play } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { interviewService } from '../../services/api';
 import { StatCard } from '../../components/dashboard/StatCard';
-import { PerformanceChart } from '../../components/dashboard/PerformanceChart';
 import { RecentInterviews } from '../../components/dashboard/RecentInterviews';
+import { UpcomingSessions } from '../../components/dashboard/UpcomingSessions';
 import { QuickActions } from '../../components/dashboard/QuickActions';
 import { Card } from '../../components/common/Card';
 
@@ -51,7 +51,7 @@ export const DashboardPage = () => {
           </div>
           <button
             onClick={() => navigate('/interview/setup')}
-            className="px-5 py-3 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white shadow-xl shadow-blue-600/30 border border-blue-400/25 flex items-center gap-2 transition-all hover:scale-105 active:scale-95 self-start"
+            className="px-5 py-3 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white shadow-xl shadow-blue-600/30 border border-blue-400/25 flex items-center gap-2 transition-all hover:scale-105 active:scale-95 self-start cursor-pointer"
           >
             <Play className="w-4 h-4 fill-white" />
             <span>Start Interview</span>
@@ -70,14 +70,12 @@ export const DashboardPage = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-8">
-          <PerformanceChart interviews={completed} />
+          <RecentInterviews interviews={interviews} />
         </div>
         <div className="lg:col-span-4">
-          <RecentInterviews interviews={interviews.slice(0, 5)} compact />
+          <UpcomingSessions />
         </div>
       </div>
-
-      <RecentInterviews interviews={interviews} />
     </div>
   );
 };

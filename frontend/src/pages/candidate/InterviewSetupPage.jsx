@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Briefcase, FileText, Loader2, Sparkles } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Briefcase, FileText, Loader2, Sparkles, CheckCircle2, RotateCcw } from 'lucide-react';
 import { Card } from '../../components/common/Card';
 import { ResumeUploader } from '../../components/resume/ResumeUploader';
 import { useToast } from '../../context/ToastContext';
@@ -8,22 +8,45 @@ import { interviewService, questionService, resumeService } from '../../services
 
 export const InterviewSetupPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { addToast } = useToast();
+
   const [resumeId, setResumeId] = useState('');
   const [currentResume, setCurrentResume] = useState(null);
-  const [jobRole, setJobRole] = useState('');
-  const [experienceYears, setExperienceYears] = useState('');
-  const [jobDescription, setJobDescription] = useState('');
+  const [jobRole, setJobRole] = useState(location.state?.jobRole || '');
+  const [experienceYears, setExperienceYears] = useState(
+    location.state?.experienceYears != null ? String(location.state.experienceYears) : ''
+  );
+  const [jobDescription, setJobDescription] = useState(location.state?.jobDescription || '');
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [recommendationTag, setRecommendationTag] = useState(
+    location.state?.fromRecommendation ? (location.state.recommendationTitle || location.state.jobRole) : ''
+  );
 
   useEffect(() => {
     resumeService.getAll()
       .then(({ data = [] }) => {
-        if (data[0]) { setCurrentResume(data[0]); setResumeId(data[0]._id); }
+        if (data[0]) {
+          setCurrentResume(data[0]);
+          setResumeId(data[0]._id);
+        }
       })
       .catch(() => {});
   }, []);
+
+  // Sync when navigating with state from recommendations
+  useEffect(() => {
+    if (location.state) {
+      if (location.state.jobRole) setJobRole(location.state.jobRole);
+      if (location.state.experienceYears != null) setExperienceYears(String(location.state.experienceYears));
+      if (location.state.jobDescription) setJobDescription(location.state.jobDescription);
+      if (location.state.fromRecommendation) {
+        setRecommendationTag(location.state.recommendationTitle || location.state.jobRole);
+        addToast('Auto-filled details from recommendation!', 'info');
+      }
+    }
+  }, [location.state, addToast]);
 
   const handleUpload = async (file) => {
     setUploading(true);
@@ -40,6 +63,13 @@ export const InterviewSetupPage = () => {
     } finally {
       setUploading(false);
     }
+  };
+
+  const clearRecommendation = () => {
+    setRecommendationTag('');
+    setJobRole('');
+    setExperienceYears('');
+    setJobDescription('');
   };
 
   const handleSubmit = async (e) => {
@@ -64,9 +94,26 @@ export const InterviewSetupPage = () => {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6 animate-in fade-in duration-300">
-      <header className="pb-4 border-b border-[#141d33]">
-        <h1 className="text-2xl sm:text-3xl font-black text-white">Create an Interview</h1>
-        <p className="text-sm text-slate-400 mt-2">Your resume, role, and experience shape the interview. Add a job description if you have one.</p>
+      <header className="pb-4 border-b border-[#141d33] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-black text-white">Create an Interview</h1>
+          <p className="text-sm text-slate-400 mt-1">Your resume, role, and experience shape the interview. Add a job description if you have one.</p>
+        </div>
+
+        {recommendationTag && (
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-blue-600/15 border border-blue-500/30 text-xs text-sky-300">
+            <CheckCircle2 className="w-3.5 h-3.5 text-sky-400" />
+            <span className="font-medium">Auto-filled: <strong className="text-white">{recommendationTag}</strong></span>
+            <button
+              type="button"
+              onClick={clearRecommendation}
+              className="text-slate-400 hover:text-white ml-1 p-0.5"
+              title="Clear pre-filled values"
+            >
+              <RotateCcw className="w-3 h-3" />
+            </button>
+          </div>
+        )}
       </header>
 
       <ResumeUploader
@@ -77,7 +124,7 @@ export const InterviewSetupPage = () => {
       />
 
       <form onSubmit={handleSubmit} className="space-y-5">
-        <Card className="p-5 space-y-4">
+        <Card className="p-6 space-y-5">
           <label className="block text-sm font-bold text-white">
             <span className="flex items-center gap-2 mb-2">
               <Briefcase className="w-4 h-4 text-sky-400" />
@@ -88,7 +135,7 @@ export const InterviewSetupPage = () => {
               value={jobRole}
               onChange={(e) => setJobRole(e.target.value)}
               placeholder="e.g. Senior Backend Engineer"
-              className="w-full rounded-xl bg-[#090e1b] border border-[#1b2640] p-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-sky-400"
+              className="w-full rounded-xl bg-[#090e1b] border border-[#1b2640] p-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-sky-400 transition-colors"
             />
           </label>
 
@@ -105,8 +152,8 @@ export const InterviewSetupPage = () => {
               step="0.5"
               value={experienceYears}
               onChange={(e) => setExperienceYears(e.target.value)}
-              placeholder="e.g. 2"
-              className="w-full rounded-xl bg-[#090e1b] border border-[#1b2640] p-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-sky-400"
+              placeholder="e.g. 3"
+              className="w-full rounded-xl bg-[#090e1b] border border-[#1b2640] p-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-sky-400 transition-colors"
             />
           </label>
 
@@ -116,11 +163,11 @@ export const InterviewSetupPage = () => {
               Job Description <span className="text-xs font-normal text-slate-500">(optional)</span>
             </span>
             <textarea
-              rows={7}
+              rows={6}
               value={jobDescription}
               onChange={(e) => setJobDescription(e.target.value)}
               placeholder="Paste the job description here..."
-              className="w-full rounded-xl bg-[#090e1b] border border-[#1b2640] p-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-sky-400"
+              className="w-full rounded-xl bg-[#090e1b] border border-[#1b2640] p-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-sky-400 transition-colors"
             />
           </label>
         </Card>
@@ -128,11 +175,11 @@ export const InterviewSetupPage = () => {
         <button
           type="submit"
           disabled={loading || uploading || !resumeId || !jobRole.trim() || experienceYears === ''}
-          className="w-full py-4 rounded-xl font-bold text-white bg-gradient-to-r from-blue-600 to-cyan-500 disabled:opacity-50 flex justify-center items-center gap-2"
+          className="w-full py-4 rounded-xl font-bold text-white bg-gradient-to-r from-blue-600 to-sky-500 hover:from-blue-500 hover:to-sky-400 disabled:opacity-50 flex justify-center items-center gap-2 shadow-lg shadow-blue-600/25 transition-all cursor-pointer active:scale-98"
         >
           {loading
-            ? <><Loader2 className="w-5 h-5 animate-spin" />Generating questions...</>
-            : <><Sparkles className="w-5 h-5" />Create Interview</>
+            ? <><Loader2 className="w-5 h-5 animate-spin" /><span>Generating custom interview plan...</span></>
+            : <><Sparkles className="w-5 h-5" /><span>Create Interview</span></>
           }
         </button>
       </form>

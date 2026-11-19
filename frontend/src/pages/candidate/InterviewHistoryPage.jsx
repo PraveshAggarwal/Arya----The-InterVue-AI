@@ -1,13 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { History, Search, Calendar, FileText, ArrowRight, Sparkles, Loader2 } from 'lucide-react';
+import { History, Search, Calendar, Clock3, Timer, FileText, ArrowRight, Sparkles, Loader2 } from 'lucide-react';
 import { Card } from '../../components/common/Card';
 import { interviewService } from '../../services/api';
-import { getStatusBadgeStyle } from '../../utils/formatters';
+import { formatDuration, getStatusBadgeStyle } from '../../utils/formatters';
 
 const formatDate = (dateStr) => {
   if (!dateStr) return '—';
   return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+};
+
+const formatStartTime = (dateStr) => {
+  if (!dateStr) return '—';
+  return new Date(dateStr).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 };
 
 export const InterviewHistoryPage = () => {
@@ -53,8 +58,8 @@ export const InterviewHistoryPage = () => {
         </button>
       </div>
 
-      <Card className="p-4 sm:p-5 flex flex-col md:flex-row items-center gap-4">
-        <div className="relative w-full md:w-80">
+      <Card className="p-4 sm:p-5 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
+        <div className="relative w-full sm:w-80">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
           <input
             type="text"
@@ -64,9 +69,9 @@ export const InterviewHistoryPage = () => {
             className="w-full bg-[#080c16] border border-[#1b253e] focus:border-sky-400 rounded-xl pl-10 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none"
           />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between sm:justify-end gap-2">
           <span className="text-xs text-slate-400">Status:</span>
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="bg-[#080c16] border border-[#1b253e] rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-sky-400">
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="bg-[#080c16] border border-[#1b253e] rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-sky-400 cursor-pointer">
             <option value="All">All</option>
             <option value="completed">Completed</option>
             <option value="draft">Draft</option>
@@ -90,31 +95,34 @@ export const InterviewHistoryPage = () => {
           </Card>
         ) : (
           filtered.map((item) => (
-            <Card key={item._id} interactive onClick={() => handleItemClick(item)} className="p-5 sm:p-6">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-[#11192e] border border-sky-500/20 flex items-center justify-center text-sky-400 shrink-0">
+            <Card key={item._id} interactive onClick={() => handleItemClick(item)} className="p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-start gap-3 sm:gap-4">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-[#11192e] border border-sky-500/20 flex items-center justify-center text-sky-400 shrink-0">
                     <FileText className="w-5 h-5" />
                   </div>
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2.5 flex-wrap">
-                      <h3 className="text-base font-bold text-white">{item.jobRole}</h3>
+                  <div className="space-y-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="text-sm sm:text-base font-bold text-white break-words">{item.jobRole}</h3>
                       <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${getStatusBadgeStyle(item.status)}`}>{item.status}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-slate-400">
-                      <Calendar className="w-3.5 h-3.5" />
-                      <span>{formatDate(item.createdAt)}</span>
-                      <span>·</span>
-                      <span>{item.questions?.length || 0} questions</span>
-                      {item.overallScore != null && <><span>Â·</span><span className="font-bold text-sky-400">{item.overallScore}/100</span></>}
+                    <div className="flex items-center gap-2 text-[11px] sm:text-xs text-slate-400 flex-wrap">
+                      <Calendar className="w-3.5 h-3.5 shrink-0" />
+                      <span>{formatDate(item.startedAt || item.createdAt)}</span>
+                      <Clock3 className="w-3.5 h-3.5 shrink-0 ml-1" />
+                      <span>{formatStartTime(item.startedAt || item.createdAt)}</span>
+                      <span>•</span>
+                      <Timer className="w-3.5 h-3.5 shrink-0 ml-1" />
+                      <span>Duration {formatDuration(item.duration)}</span>
+                      {item.overallScore != null && <><span>•</span><span className="font-bold text-sky-400">{item.overallScore}/100</span></>}
                     </div>
                   </div>
                 </div>
                 <button
                   onClick={(e) => { e.stopPropagation(); handleItemClick(item); }}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-[#121c33] hover:bg-sky-500/20 text-sky-300 border border-sky-500/30 hover:border-sky-400 transition-all flex items-center gap-1.5 self-end md:self-center"
+                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-[#121c33] hover:bg-sky-500/20 text-sky-300 border border-sky-500/30 hover:border-sky-400 transition-all flex items-center justify-center gap-1.5 w-full sm:w-auto cursor-pointer"
                 >
-                  <span>Open</span>
+                  <span>Open Session</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>

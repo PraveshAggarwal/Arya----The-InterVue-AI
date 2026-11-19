@@ -67,7 +67,7 @@ const interviewSchema = new mongoose.Schema(
 
     totalQuestions: {
       type: Number,
-      default: 10,
+      default: 15,
       min: 1,
       max: 50,
     },
@@ -109,6 +109,29 @@ const interviewSchema = new mongoose.Schema(
     completedAt: {
       type: Date,
       default: null,
+    },
+
+    startedAt: {
+      type: Date,
+      default: null,
+    },
+
+    duration: {
+      type: Number,
+      default: null,
+      min: 0,
+    },
+
+    completedMainQuestions: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 15,
+    },
+
+    isFullyCompleted: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true },

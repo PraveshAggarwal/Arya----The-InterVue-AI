@@ -11,6 +11,7 @@ const DashboardPage = lazy(() => import('../pages/candidate/DashboardPage').then
 const InterviewSetupPage = lazy(() => import('../pages/candidate/InterviewSetupPage').then(m => ({ default: m.InterviewSetupPage })));
 const InterviewQuestionsPage = lazy(() => import('../pages/interview/InterviewQuestionsPage').then(m => ({ default: m.InterviewQuestionsPage })));
 const InterviewHistoryPage = lazy(() => import('../pages/candidate/InterviewHistoryPage').then(m => ({ default: m.InterviewHistoryPage })));
+const ResumeAnalysisPage = lazy(() => import('../pages/candidate/ResumeAnalysisPage').then(m => ({ default: m.ResumeAnalysisPage })));
 const ProfilePage = lazy(() => import('../pages/candidate/ProfilePage').then(m => ({ default: m.ProfilePage })));
 
 const PageLoadingFallback = () => (
@@ -51,6 +52,7 @@ export const AppRoutes = () => {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/interview/setup" element={<InterviewSetupPage />} />
           <Route path="/history" element={<InterviewHistoryPage />} />
+          <Route path="/resume-analysis" element={<ResumeAnalysisPage />} />
           <Route path="/profile" element={<ProfilePage />} />
         </Route>
 

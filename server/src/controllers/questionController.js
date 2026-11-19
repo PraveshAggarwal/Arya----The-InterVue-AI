@@ -65,7 +65,7 @@ const generateInterviewQuestions = async (req, res) => {
       role: interview.jobRole,
       experience: `${interview.experienceYears} years`,
       difficulty: "medium",
-      total_questions: Math.min(Math.max(interview.totalQuestions, 5), 20),
+      total_questions: 15,
       resume_text: resume.extractedText || "",
       job_description: interview.jobDescription || "",
       skills: [],
@@ -78,11 +78,10 @@ const generateInterviewQuestions = async (req, res) => {
       return res.status(502).json({ success: false, message: "AI service did not generate usable questions." });
     }
 
-    if (questions.length > interview.totalQuestions) {
-      questions.length = interview.totalQuestions;
-      questions.forEach((q, i) => { q.order = i + 1; });
-    }
+    if (questions.length > 15) questions.length = 15;
+    questions.forEach((q, i) => { q.order = i + 1; });
 
+    interview.totalQuestions = 15;
     interview.questions = questions;
     await interview.save();
 

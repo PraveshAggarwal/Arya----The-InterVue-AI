@@ -1,6 +1,6 @@
 
 const Resume = require("../models/Resume");
-const { parseResume } = require("../services/aiService");
+const { parseResume, analyzeResume } = require("../services/aiService");
 const fs = require("fs/promises");
 
 const deleteLocalFile = async (filePath) => {
@@ -74,6 +74,42 @@ const getResumeById = async (req, res) => {
   }
 };
 
+const analyzeMyResume = async (req, res) => {
+  try {
+    const resume = await Resume.findOne({ _id: req.params.id, user: req.user._id, isActive: true });
+    if (!resume) return res.status(404).json({ success: false, message: "Resume not found." });
+    if (!resume.extractedText?.trim()) {
+      return res.status(422).json({ success: false, message: "This resume has no readable text to analyze." });
+    }
+
+    const targetRole = typeof req.body?.targetRole === "string" ? req.body.targetRole.trim().slice(0, 120) : "";
+    const jobDescription = typeof req.body?.jobDescription === "string" ? req.body.jobDescription.trim().slice(0, 10000) : "";
+    const result = await analyzeResume({
+      resume_text: resume.extractedText.slice(0, 20000),
+      target_role: targetRole,
+      job_description: jobDescription,
+    });
+    const analysis = result?.data || result;
+    resume.analysis = analysis;
+    resume.analysisTargetRole = targetRole;
+    resume.analyzedAt = new Date();
+    await resume.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Resume analysis completed.",
+      data: { resumeId: resume._id, analysis, analysisTargetRole: targetRole, analyzedAt: resume.analyzedAt },
+    });
+  } catch (error) {
+    const invalidId = error.name === "CastError";
+    return res.status(invalidId ? 400 : 502).json({
+      success: false,
+      message: invalidId ? "Invalid resume ID." : "Resume analysis failed.",
+      error: error.response?.data?.detail || error.message,
+    });
+  }
+};
+
 const deleteResume = async (req, res) => {
   try {
     const resume = await Resume.findOne({ _id: req.params.id, user: req.user._id });
@@ -90,4 +126,4 @@ const deleteResume = async (req, res) => {
   }
 };
 
-module.exports = { uploadResume, getMyResumes, getResumeById, deleteResume };
+module.exports = { uploadResume, getMyResumes, getResumeById, analyzeMyResume, deleteResume };

@@ -103,12 +103,12 @@ export const LandingPage = () => {
       highlight: 'PDF & DOCX support'
     },
     {
-      category: 'video',
+      category: 'camera',
       icon: Video,
-      title: 'Camera & Posture Environment',
+      title: 'Live Camera Preview',
       description:
-        'Mirror your real interview setup. Video preview lets you practice eye contact, posture, and facial confidence in a safe, zero-judgment sandbox.',
-      highlight: 'Client-side WebRTC'
+        'Practice eye contact and posture with a live browser preview. Camera video is not recorded or saved.',
+      highlight: 'Preview only · no recording'
     },
     {
       category: 'analytics',
@@ -182,7 +182,7 @@ export const LandingPage = () => {
             </div>
 
             {/* Main Headline */}
-            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-white tracking-tight leading-[1.1]">
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl xl:text-7xl font-extrabold text-white tracking-tight leading-[1.15] sm:leading-[1.1]">
               The mock interview platform that{' '}
               <span className="bg-gradient-to-r from-blue-400 via-sky-300 to-cyan-300 bg-clip-text text-transparent">
                 actually listens
@@ -191,12 +191,12 @@ export const LandingPage = () => {
             </h1>
 
             {/* Subheading */}
-            <p className="max-w-3xl mx-auto mt-6 text-base sm:text-lg text-slate-300 leading-relaxed font-normal">
+            <p className="max-w-3xl mx-auto mt-4 sm:mt-6 text-sm sm:text-lg text-slate-300 leading-relaxed font-normal px-2">
               Pair your resume with any job description. Arya, your AI interviewer, conducts a realistic multi-turn voice session with contextual follow-ups, grading your answers across real industry rubrics.
             </p>
 
             {/* CTA Group */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mt-8 sm:mt-10 px-4 sm:px-0">
               <button
                 onClick={() => navigate(isAuthenticated ? '/interview/setup' : '/register')}
                 className="w-full sm:w-auto px-7 py-3.5 rounded-xl text-sm font-bold bg-blue-600 hover:bg-blue-500 text-white shadow-xl shadow-blue-600/25 border border-blue-400/30 flex items-center justify-center gap-2.5 transition-all hover:scale-102 active:scale-98 cursor-pointer"
@@ -214,7 +214,7 @@ export const LandingPage = () => {
             </div>
 
             {/* Trust & Engineering Highlights */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-16 max-w-4xl mx-auto text-left">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mt-12 sm:mt-16 max-w-4xl mx-auto text-left">
               <div className="p-4 rounded-xl bg-[#0c1220]/70 border border-[#16223b]">
                 <div className="flex items-center gap-2 text-sky-400 font-bold text-sm">
                   <Zap className="w-4 h-4" />
@@ -299,7 +299,7 @@ export const LandingPage = () => {
                   <div className="md:col-span-2 flex flex-col justify-between space-y-3">
                     <div className="p-4 rounded-xl bg-[#0c1220] border border-sky-500/25">
                       <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-sky-400">Question 3 of 6 · System Architecture</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-sky-400">System Architecture</span>
                         <span className="text-[10px] font-mono text-slate-400">Duration: 02:45</span>
                       </div>
                       <p className="text-xs sm:text-sm text-slate-100 font-medium leading-relaxed">
@@ -601,21 +601,21 @@ export const LandingPage = () => {
         </section>
 
         {/* ===================== DEVELOPER PROFILE SECTION ===================== */}
-        <section id="developer" className="py-24 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto border-b border-[#111827]">
-          <div className="p-8 sm:p-10 rounded-3xl bg-gradient-to-br from-[#0d1527] via-[#090e1a] to-[#070b14] border border-sky-500/20 relative overflow-hidden shadow-2xl">
+        <section id="developer" className="py-16 sm:py-24 px-3 sm:px-6 lg:px-8 max-w-5xl mx-auto border-b border-[#111827]">
+          <div className="p-5 sm:p-8 md:p-10 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-[#0d1527] via-[#090e1a] to-[#070b14] border border-sky-500/20 relative overflow-hidden shadow-2xl">
             <div className="absolute right-0 top-0 w-80 h-80 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
 
-            <div className="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-8">
+            <div className="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-6 sm:gap-8">
               {/* Dev Avatar / Initial Badge */}
-              <div className="w-24 h-24 rounded-2xl bg-gradient-to-tr from-blue-600 via-sky-500 to-cyan-400 p-0.5 shadow-xl shadow-blue-500/25 shrink-0">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-tr from-blue-600 via-sky-500 to-cyan-400 p-0.5 shadow-xl shadow-blue-500/25 shrink-0">
                 <div className="w-full h-full bg-[#080d1a] rounded-[14px] flex flex-col items-center justify-center text-center">
-                  <span className="text-2xl font-black text-white tracking-wider">PA</span>
+                  <span className="text-xl sm:text-2xl font-black text-white tracking-wider">PA</span>
                   <span className="text-[9px] uppercase font-bold text-sky-400 tracking-widest mt-0.5">DEV</span>
                 </div>
               </div>
 
               {/* Dev Info */}
-              <div className="flex-1 text-center md:text-left space-y-4">
+              <div className="flex-1 text-center md:text-left space-y-4 w-full">
                 <div>
                   <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 text-[11px] font-semibold mb-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -630,12 +630,12 @@ export const LandingPage = () => {
                 </p>
 
                 {/* Social Connect Links Requested by User */}
-                <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 pt-2">
+                <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center justify-center md:justify-start gap-2.5 sm:gap-3 pt-2">
                   <a
                     href="https://github.com/PraveshAggarwal"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#11192e] hover:bg-[#18233d] text-slate-200 hover:text-white border border-[#1f2b48] hover:border-sky-500/40 text-xs font-semibold transition-all shadow-sm"
+                    className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#11192e] hover:bg-[#18233d] text-slate-200 hover:text-white border border-[#1f2b48] hover:border-sky-500/40 text-xs font-semibold transition-all shadow-sm"
                   >
                     <GithubIcon className="w-4 h-4 text-white" />
                     <span>GitHub: PraveshAggarwal</span>
@@ -646,7 +646,7 @@ export const LandingPage = () => {
                     href="https://www.linkedin.com/in/praveshaggarwal10/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#11192e] hover:bg-[#18233d] text-slate-200 hover:text-white border border-[#1f2b48] hover:border-sky-500/40 text-xs font-semibold transition-all shadow-sm"
+                    className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#11192e] hover:bg-[#18233d] text-slate-200 hover:text-white border border-[#1f2b48] hover:border-sky-500/40 text-xs font-semibold transition-all shadow-sm"
                   >
                     <LinkedinIcon className="w-4 h-4 text-sky-400" />
                     <span>LinkedIn: praveshaggarwal10</span>
@@ -657,7 +657,7 @@ export const LandingPage = () => {
                     href="https://x.com/ImPraveshAgg"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#11192e] hover:bg-[#18233d] text-slate-200 hover:text-white border border-[#1f2b48] hover:border-sky-500/40 text-xs font-semibold transition-all shadow-sm"
+                    className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#11192e] hover:bg-[#18233d] text-slate-200 hover:text-white border border-[#1f2b48] hover:border-sky-500/40 text-xs font-semibold transition-all shadow-sm"
                   >
                     <XIcon className="w-3.5 h-3.5 text-slate-200" />
                     <span>X: @ImPraveshAgg</span>

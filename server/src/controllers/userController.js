@@ -30,7 +30,7 @@ const getMyProfile = async (req, res) => {
 // Update logged-in user's profile
 const updateMyProfile = async (req, res) => {
   try {
-    const { name, phone, profileImage } = req.body;
+    const { name, phone } = req.body;
 
     const updates = {};
 
@@ -56,23 +56,9 @@ const updateMyProfile = async (req, res) => {
       updates.phone = phone.trim();
     }
 
-    if (profileImage !== undefined) {
-      if (
-        typeof profileImage !== "string" ||
-        profileImage.length > 2048
-      ) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid profile image reference.",
-        });
-      }
-
-      updates.profileImage = profileImage;
-    }
-
     const user = await User.findByIdAndUpdate(
       req.user._id,
-      { $set: updates },
+      { $set: updates, $unset: { profileImage: "" } },
       {
         new: true,
         runValidators: true,

@@ -24,6 +24,11 @@ const parseResume = async (filePath) => {
   return response.data;
 };
 
+const analyzeResume = async (data) => {
+  const response = await aiClient.post("/api/resume/analyze", data, { timeout: 180000 });
+  return response.data;
+};
+
 const generateNextQuestion = async (data) => {
   const response = await aiClient.post("/api/interview/next-question", data);
   return response.data;
@@ -36,6 +41,7 @@ const generatePerformanceReport = async (data) => {
 
 module.exports = {
   parseResume,
+  analyzeResume,
   generateQuestions,
   generateNextQuestion,
   generatePerformanceReport,

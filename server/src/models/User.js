@@ -29,11 +29,6 @@ const userSchema = new mongoose.Schema(
       default: "candidate"
     },
 
-    profileImage: {
-      type: String,
-      default: ""
-    },
-
     phone: {
       type: String,
       default: ""

@@ -39,6 +39,7 @@ export const resumeService = {
   upload: (formData) => api.post('/resumes/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
   getAll: () => api.get('/resumes'),
   getById: (id) => api.get(`/resumes/${id}`),
+  analyze: (id, data) => api.post(`/resumes/${id}/analyze`, data, { timeout: 180000 }),
   delete: (id) => api.delete(`/resumes/${id}`),
 };
 
@@ -46,6 +47,7 @@ export const interviewService = {
   create: (data) => api.post('/interviews', data),
   getAll: () => api.get('/interviews'),
   getById: (id) => api.get(`/interviews/${id}`),
+  start: (id) => api.post(`/interviews/${id}/start`),
   complete: (id, data) => api.post(`/interviews/${id}/complete`, data, { timeout: 300000 }),
   nextQuestion: (id, data) => api.post(`/interviews/${id}/next-question`, data),
 };

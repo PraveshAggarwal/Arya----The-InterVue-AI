@@ -9,8 +9,8 @@ export const ResumeUploader = ({ onFileUpload, onDelete, currentResume, uploadin
   const [isDragging, setIsDragging] = useState(false);
 
   const processFile = (file) => {
-    const valid = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/msword'];
-    const isValid = valid.includes(file.type) || file.name.endsWith('.pdf') || file.name.endsWith('.docx');
+    const valid = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    const isValid = valid.includes(file.type) || file.name.toLowerCase().endsWith('.pdf') || file.name.toLowerCase().endsWith('.docx');
     if (!isValid) { addToast('Please upload a valid PDF or DOCX file.', 'error'); return; }
     onFileUpload(file);
   };
@@ -33,14 +33,14 @@ export const ResumeUploader = ({ onFileUpload, onDelete, currentResume, uploadin
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-base font-bold text-white tracking-tight">Upload Resume {required && <span className="text-rose-400">*</span>}</h3>
-          <p className="text-xs text-slate-400">Upload a PDF or DOCX resume to extract its text for interview questions</p>
+          <p className="text-xs text-slate-400">Upload a PDF or DOCX resume for interview planning and resume analysis</p>
         </div>
         <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20">
           PDF & DOCX
         </span>
       </div>
 
-      <input ref={fileInputRef} type="file" accept=".pdf,.docx,.doc" className="hidden" onChange={handleFileChange} />
+      <input ref={fileInputRef} type="file" accept=".pdf,.docx" className="hidden" onChange={handleFileChange} />
 
       <div
         onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
@@ -59,7 +59,7 @@ export const ResumeUploader = ({ onFileUpload, onDelete, currentResume, uploadin
           {uploading ? 'Parsing resume...' : <>Drag and drop or <span className="text-sky-400 underline underline-offset-2">browse files</span></>}
         </h4>
         <p className="text-xs text-slate-400 max-w-sm mx-auto">
-          {uploading ? 'Extracting readable text from your resume.' : 'Parsed resume text personalizes your interview questions.'}
+          {uploading ? 'Extracting readable text from your resume.' : 'Parsed resume text powers your interview and ATS analysis.'}
         </p>
 
         {!uploading && currentResume && (

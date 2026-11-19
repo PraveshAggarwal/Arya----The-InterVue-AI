@@ -23,13 +23,21 @@ export const DashboardPage = () => {
   }, []);
 
   const completed = interviews.filter((i) => i.status === 'completed');
+  const startedInterviews = interviews.filter((i) => Boolean(i.startedAt));
+  const fullyCompletedInterviews = interviews.filter((i) => i.status === 'completed' && i.isFullyCompleted === true && i.startedAt);
+  const scoredInterviews = completed.filter((i) => Number.isFinite(i.overallScore));
   const totalInterviews = interviews.length;
-  const avgScore = completed.length
-    ? Math.round(completed.reduce((sum, i) => sum + (i.overallScore || 0), 0) / completed.length)
-    : 0;
-  const practiceHours = completed.length
-    ? Math.round((completed.reduce((sum, i) => sum + (i.duration || 0), 0) / 3600) * 10) / 10
-    : 0;
+  const avgScore = scoredInterviews.length
+    ? Math.round(scoredInterviews.reduce((sum, i) => sum + i.overallScore, 0) / scoredInterviews.length)
+    : null;
+  const durationSeconds = completed.reduce((sum, interview) => (
+    sum + (Number.isFinite(interview.duration) && interview.duration >= 0 ? interview.duration : 0)
+  ), 0);
+  const sessionsWithDuration = completed.filter((i) => Number.isFinite(i.duration) && i.duration > 0).length;
+  const practiceHours = durationSeconds / 3600;
+  const completionRate = startedInterviews.length
+    ? Math.round((fullyCompletedInterviews.length / startedInterviews.length) * 100)
+    : null;
 
   return (
     <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-300">
@@ -44,9 +52,11 @@ export const DashboardPage = () => {
               Welcome back, {user?.name?.split(' ')[0] || 'Candidate'} 👋
             </h1>
             <p className="text-xs sm:text-sm text-slate-300 max-w-xl leading-relaxed">
-              {completed.length > 0
-                ? <>You have completed <strong className="text-white">{completed.length} mock interviews</strong>{avgScore > 0 && <> with an average score of <strong className="text-sky-400">{avgScore} points</strong></>}.</>
-                : 'Start your first mock interview to begin tracking your progress.'}
+              {fullyCompletedInterviews.length > 0
+                ? <>You have completed <strong className="text-white">{fullyCompletedInterviews.length} full mock interviews</strong>{avgScore != null && <> with an average score of <strong className="text-sky-400">{avgScore} points</strong></>}.</>
+                : startedInterviews.length > 0
+                  ? <>You have started <strong className="text-white">{startedInterviews.length} interview sessions</strong>. Complete all 15 main questions for a full completion.</>
+                  : 'Start your first mock interview to begin tracking your progress.'}
             </p>
           </div>
           <button
@@ -60,10 +70,10 @@ export const DashboardPage = () => {
       </Card>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-        <StatCard title="Total Interviews" value={loading ? '—' : totalInterviews} change={`${completed.length} completed`} icon={Video} accentColor="text-sky-400" bgGradient="from-sky-500/20 to-transparent" />
-        <StatCard title="Average Score" value={loading ? '—' : avgScore > 0 ? `${avgScore}%` : '—'} change={completed.length > 0 ? `${completed.length} sessions scored` : 'No scores yet'} icon={Award} accentColor="text-emerald-400" bgGradient="from-emerald-500/20 to-transparent" />
-        <StatCard title="Practice Hours" value={loading ? '—' : `${practiceHours}h`} change={`${completed.length} sessions`} icon={Clock} accentColor="text-blue-400" bgGradient="from-blue-600/20 to-transparent" />
-        <StatCard title="Completion Rate" value={loading || totalInterviews === 0 ? '—' : `${Math.round((completed.length / totalInterviews) * 100)}%`} change={`${totalInterviews} total sessions`} icon={TrendingUp} accentColor="text-cyan-400" bgGradient="from-cyan-500/20 to-transparent" />
+        <StatCard title="Total Interviews" value={loading ? '—' : totalInterviews} change={`${startedInterviews.length} started`} icon={Video} accentColor="text-sky-400" bgGradient="from-sky-500/20 to-transparent" />
+        <StatCard title="Average Score" value={loading ? '—' : avgScore == null ? '—' : `${avgScore}%`} change={scoredInterviews.length ? `${scoredInterviews.length} scored sessions` : 'No scores yet'} icon={Award} accentColor="text-emerald-400" bgGradient="from-emerald-500/20 to-transparent" />
+        <StatCard title="Practice Hours" value={loading ? '—' : `${practiceHours.toFixed(2)}h`} change={`${sessionsWithDuration} sessions with saved time`} icon={Clock} accentColor="text-blue-400" bgGradient="from-blue-600/20 to-transparent" />
+        <StatCard title="Completion Rate" value={loading ? '—' : completionRate == null ? '—' : `${completionRate}%`} change={`${fullyCompletedInterviews.length} full / ${startedInterviews.length} started`} icon={TrendingUp} accentColor="text-cyan-400" bgGradient="from-cyan-500/20 to-transparent" />
       </div>
 
       <QuickActions />

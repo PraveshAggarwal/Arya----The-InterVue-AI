@@ -71,6 +71,8 @@ RESUME (use specific projects, skills, certifications, or experience as question
 RECENT HISTORY:
 {history_text}
 REMAINING TOPICS: {', '.join(data.remaining_topics) if data.remaining_topics else 'Choose the next relevant topic'}
+REMAINING PLANNED QUESTIONS: {data.remaining_questions[:10]}
+MAIN QUESTION PROGRESS: {data.main_question_number} of {data.total_questions} (follow-ups do not count)
 FOLLOW-UP COUNT: {data.followup_count}
 FOLLOW-UP ALLOWED: {allow_followup}
 
@@ -80,7 +82,7 @@ Decide the next action like a thoughtful human interviewer. Always put a short s
 - If the answer is clear and substantive, acknowledge a specific strength in "response" (for example, clear reasoning, a relevant example, or a measurable outcome), then ask the next distinct question. Avoid generic praise and do not exaggerate.
 - If the candidate's answer is especially strong, say specifically what made it strong. If it is weak, be kind but direct about what is missing and how to improve it.
 - Across the interview, cover both the role/job description and the candidate's resume. Ask about specific resume projects, their contribution, outcomes, listed skills, and certifications; do not make every question about the job title.
-- Use "complete" only after enough substantive ground has been covered (usually 5-8 main questions), not just because an answer was weak.
+- Do not complete before all {data.total_questions} main questions have been answered. Follow-up questions do not count as a new main question.
 - Never ask a question already present in RECENT HISTORY, including a paraphrase of one. A follow-up must add a genuinely new, narrower probe.
 - Keep the question concise and conversational (1-2 sentences max).
 - Never repeat a previous question.
@@ -120,6 +122,15 @@ action must be "follow_up", "next", or "complete".
             result["action"] = "next"
         if not allow_followup and result["action"] == "follow_up":
             result["action"] = "next"
+
+        if data.main_question_number >= data.total_questions:
+            result["action"] = "complete"
+        elif result["action"] == "complete":
+            result["action"] = "next"
+            if data.remaining_questions:
+                result["question"] = data.remaining_questions[0]
+            elif not result.get("question"):
+                result["question"] = "Could you describe a specific project that shows how you approach this role's challenges?"
 
         # Guard against an LLM repeating a question despite the prompt instruction.
         normalize = lambda value: " ".join(value.lower().split()).rstrip(" ?.!") if isinstance(value, str) else ""

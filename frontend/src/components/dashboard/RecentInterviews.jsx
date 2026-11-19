@@ -2,11 +2,9 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FileText, Calendar, Clock, ChevronRight } from 'lucide-react';
 import { Card } from '../common/Card';
-import { getStatusBadgeStyle } from '../../utils/formatters';
+import { formatDuration, getStatusBadgeStyle } from '../../utils/formatters';
 
 const formatDate = (d) => d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—';
-const formatDuration = (s) => s ? `${Math.floor(s / 60)} min` : '—';
-
 export const RecentInterviews = ({ interviews = [], compact = false }) => {
   const navigate = useNavigate();
 
@@ -63,27 +61,25 @@ export const RecentInterviews = ({ interviews = [], compact = false }) => {
                     <span>{formatDate(item.createdAt)}</span>
                   </span>
                   <span>•</span>
-                  <span className="flex items-center gap-1">
+                  <span className="flex items-center gap-1" title="Interview duration">
                     <Clock className="w-3 h-3" />
                     <span>{formatDuration(item.duration)}</span>
                   </span>
-                  <span>•</span>
-                  <span className="capitalize">{item.interviewType}</span>
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-4 self-end sm:self-center">
+            <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto pt-2.5 sm:pt-0 border-t sm:border-t-0 border-[#151f36]/70">
               {item.overallScore != null && (
-                <div className="text-right">
-                  <div className="text-base font-extrabold text-sky-400">{item.overallScore} <span className="text-[10px] text-slate-400 font-normal">/100</span></div>
+                <div className="text-left sm:text-right">
+                  <div className="text-sm sm:text-base font-extrabold text-sky-400">{item.overallScore} <span className="text-[10px] text-slate-400 font-normal">/100</span></div>
                   <div className="text-[10px] text-slate-400">AI Score</div>
                 </div>
               )}
 
               <button
                 onClick={(e) => { e.stopPropagation(); handleClick(item); }}
-                className="px-3 py-1.5 rounded-xl text-xs font-medium bg-[#141e35] hover:bg-sky-500/20 text-slate-200 hover:text-sky-300 border border-sky-500/20 hover:border-sky-400/40 transition-all"
+                className="px-3 py-1.5 rounded-xl text-xs font-medium bg-[#141e35] hover:bg-sky-500/20 text-slate-200 hover:text-sky-300 border border-sky-500/20 hover:border-sky-400/40 transition-all cursor-pointer ml-auto sm:ml-0"
               >
                 {item.status === 'in_progress' ? 'Resume' : item.status === 'completed' ? 'View Report' : 'Open'}
               </button>

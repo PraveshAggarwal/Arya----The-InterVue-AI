@@ -6,6 +6,16 @@ export const formatTime = (seconds) => {
   return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 };
 
+export const formatDuration = (seconds) => {
+  if (!Number.isFinite(seconds) || seconds < 0) return '—';
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const remainingSeconds = seconds % 60;
+  return hours > 0
+    ? `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`
+    : `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+};
+
 export const formatScore = (score) => {
   if (score >= 90) return { label: 'Excellent', color: 'text-emerald-400', border: 'border-emerald-500/30', bg: 'bg-emerald-500/10' };
   if (score >= 80) return { label: 'Very Good', color: 'text-sky-400', border: 'border-sky-500/30', bg: 'bg-sky-500/10' };

@@ -1,12 +1,13 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, History, Sparkles, User, Bot } from 'lucide-react';
+import { LayoutDashboard, History, Sparkles, User, Bot, FileSearch } from 'lucide-react';
 
 export const Sidebar = ({ onNavigate, className = '' }) => {
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: 'New Interview', path: '/interview/setup', icon: Sparkles },
     { name: 'Interview History', path: '/history', icon: History },
+    { name: 'Resume Analysis', path: '/resume-analysis', icon: FileSearch },
     { name: 'Profile', path: '/profile', icon: User },
   ];
 

@@ -5,7 +5,7 @@ const { generatePerformanceReport } = require("../services/aiService");
 
 const createInterview = async (req, res) => {
   try {
-    const { resumeId, jobRole, experienceYears, jobDescription = "", totalQuestions = 8 } = req.body;
+    const { resumeId, jobRole, experienceYears, jobDescription = "" } = req.body;
     const parsedExperience = Number(experienceYears);
     if (!resumeId || !jobRole?.trim() || !Number.isFinite(parsedExperience) || parsedExperience < 0) {
       return res.status(400).json({ success: false, message: "Resume, job role, and years of experience are required." });
@@ -21,13 +21,31 @@ const createInterview = async (req, res) => {
       jobRole: jobRole.trim(),
       experienceYears: parsedExperience,
       jobDescription: jobDescription.trim(),
-      totalQuestions,
+      totalQuestions: 15,
       status: "draft",
     });
     return res.status(201).json({ success: true, message: "Interview created successfully.", data: interview });
   } catch (error) {
     console.error("Create interview error:", error.message);
     return res.status(500).json({ success: false, message: "Unable to create interview." });
+  }
+};
+
+const startInterview = async (req, res) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ success: false, message: "Invalid interview ID." });
+    }
+    const interview = await Interview.findOneAndUpdate(
+      { _id: req.params.id, user: req.user._id, status: "draft", startedAt: null },
+      { $set: { startedAt: new Date() } },
+      { new: true },
+    );
+    const existing = interview || await Interview.findOne({ _id: req.params.id, user: req.user._id, status: "draft" });
+    if (!existing) return res.status(404).json({ success: false, message: "Active interview not found." });
+    return res.status(200).json({ success: true, data: { startedAt: existing.startedAt } });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: "Unable to start interview." });
   }
 };
 
@@ -59,7 +77,7 @@ const completeInterview = async (req, res) => {
     const transcript = Array.isArray(req.body?.transcript)
       ? req.body.transcript
         .filter((turn) => typeof turn?.question === "string" && typeof turn?.answer === "string")
-        .slice(0, 20)
+        .slice(0, 60)
         .map((turn) => ({ question: turn.question.trim().slice(0, 2000), answer: turn.answer.trim().slice(0, 8000) }))
       : [];
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -73,6 +91,15 @@ const completeInterview = async (req, res) => {
     if (interview.status !== "draft") {
       return res.status(409).json({ success: false, message: "This interview has already ended." });
     }
+    const completedAt = new Date();
+    const duration = interview.startedAt
+      ? Math.max(0, Math.floor((completedAt.getTime() - interview.startedAt.getTime()) / 1000))
+      : 0;
+    const requestedCompletedQuestions = Number(req.body?.completedMainQuestions);
+    const completedMainQuestions = Number.isInteger(requestedCompletedQuestions)
+      ? Math.min(Math.max(requestedCompletedQuestions, 0), 15)
+      : 0;
+    const isFullyCompleted = completedMainQuestions >= 15;
 
     let report;
     try {
@@ -98,7 +125,10 @@ const completeInterview = async (req, res) => {
           transcript,
           report,
           overallScore: report.overallScore,
-          completedAt: new Date(),
+          completedAt,
+          duration,
+          completedMainQuestions,
+          isFullyCompleted,
         },
       },
       { new: true, runValidators: true },
@@ -115,6 +145,9 @@ const completeInterview = async (req, res) => {
         status: completedInterview.status,
         overallScore: completedInterview.overallScore,
         completedAt: completedInterview.completedAt,
+        duration: completedInterview.duration,
+        completedMainQuestions: completedInterview.completedMainQuestions,
+        isFullyCompleted: completedInterview.isFullyCompleted,
       },
     });
   } catch (error) {
@@ -123,4 +156,4 @@ const completeInterview = async (req, res) => {
   }
 };
 
-module.exports = { createInterview, getMyInterviews, getInterviewById, completeInterview };
+module.exports = { createInterview, startInterview, getMyInterviews, getInterviewById, completeInterview };

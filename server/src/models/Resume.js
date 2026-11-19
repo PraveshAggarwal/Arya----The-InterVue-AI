@@ -41,6 +41,22 @@ const resumeSchema = new mongoose.Schema(
       default: "",
     },
 
+    analysis: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
+    },
+
+    analysisTargetRole: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    analyzedAt: {
+      type: Date,
+      default: null,
+    },
+
     isActive: {
       type: Boolean,
       default: true,

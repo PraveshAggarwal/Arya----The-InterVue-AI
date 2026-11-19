@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PlayCircle, BarChart3, ArrowRight } from 'lucide-react';
+import { PlayCircle, BarChart3, ArrowRight, FileSearch } from 'lucide-react';
 import { Card } from '../common/Card';
 
 export const QuickActions = () => {
@@ -23,10 +23,18 @@ export const QuickActions = () => {
       gradient: 'from-indigo-600 to-blue-500',
       badge: null,
     },
+    {
+      title: 'Resume Analysis',
+      desc: 'Review ATS readiness, role keywords, strong points, gaps, and ways to improve your resume.',
+      icon: FileSearch,
+      path: '/resume-analysis',
+      gradient: 'from-cyan-600 to-sky-500',
+      badge: null,
+    },
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
       {actions.map((act) => {
         const Icon = act.icon;
         return (

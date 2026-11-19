@@ -11,46 +11,26 @@ export const Header = ({ onToggleMobileMenu }) => {
   const userInitial = user?.name ? user.name.charAt(0).toUpperCase() : 'C';
 
   return (
-    <header className="h-18 px-5 lg:px-8 bg-[#080c16]/95 backdrop-blur-md border-b border-[#141c30] flex items-center justify-between sticky top-0 z-20">
-      <div className="flex items-center gap-4">
+    <header className="h-16 sm:h-18 px-3.5 sm:px-6 lg:px-8 bg-[#080c16]/95 backdrop-blur-md border-b border-[#141c30] flex items-center justify-between sticky top-0 z-20">
+      <div className="flex items-center gap-2 sm:gap-4">
         <button
           onClick={onToggleMobileMenu}
-          className="lg:hidden p-2 text-slate-400 hover:text-white rounded-lg hover:bg-[#101729] transition-colors"
+          className="lg:hidden p-2 text-slate-400 hover:text-white rounded-lg hover:bg-[#101729] transition-colors cursor-pointer"
           aria-label="Open menu"
         >
           <Menu className="w-5 h-5" />
         </button>
-        <div className="hidden sm:flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-[#0d1424] border border-[#1b2640] text-xs text-slate-400 w-64">
-          <Search className="w-3.5 h-3.5" />
-          <span>Search sessions & topics...</span>
-        </div>
       </div>
 
-      <div className="flex items-center gap-3">
-        <button
-          onClick={() => navigate('/interview/setup')}
-          className="hidden md:flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-gradient-to-r from-blue-600 to-sky-500 hover:from-blue-500 hover:to-sky-400 text-white shadow-md shadow-blue-500/25 transition-all"
-        >
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>New Interview</span>
-        </button>
-
+      <div className="flex items-center gap-2 sm:gap-3">
         <Dropdown
           align="right"
           width="w-56"
           trigger={
             <div className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-[#101729] transition-colors cursor-pointer border border-transparent hover:border-[#1e2a44]">
-              {user?.avatar || user?.profileImage ? (
-                <img
-                  src={user.avatar || user.profileImage}
-                  alt={user.name || 'User'}
-                  className="w-8 h-8 rounded-full object-cover border border-sky-500/40"
-                />
-              ) : (
-                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-sky-400 flex items-center justify-center text-white text-xs font-bold shadow-sm">
-                  {userInitial}
-                </div>
-              )}
+              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-sky-400 flex items-center justify-center text-white text-xs font-bold shadow-sm">
+                {userInitial}
+              </div>
               <span className="hidden lg:block text-xs font-medium text-slate-200">
                 {user?.name || 'Candidate'}
               </span>

@@ -3,6 +3,7 @@ const router = express.Router();
 const { protect } = require("../middleware/authMiddleware");
 const {
   createInterview,
+  startInterview,
   getMyInterviews,
   getInterviewById,
   completeInterview,
@@ -14,6 +15,7 @@ const Resume = require("../models/Resume");
 router.use(protect);
 
 router.post("/", createInterview);
+router.post("/:id/start", startInterview);
 router.get("/", getMyInterviews);
 router.post("/:id/complete", completeInterview);
 router.get("/:id", getInterviewById);

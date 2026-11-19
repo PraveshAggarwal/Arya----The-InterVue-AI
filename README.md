@@ -28,11 +28,18 @@ This monorepo consists of three decoupled components:
 ## Core Features
 
 - **Resume-Grounded Questions**: Extracts text from PDF and DOCX files, mapping previous experience, technologies, and projects directly to the job role.
+- **Resume Analysis**: Estimate ATS readiness, compare resume keywords with a target role or job description, and review strengths, weaknesses, and concrete improvement areas. The latest analysis is saved with the resume.
 - **Hands-Free Conversational Voice Interview**: Live Web Speech API speech-to-text and native speech synthesis. Candidates speak naturally into their microphone while Arya listens, without requiring manual button clicks.
+- **Camera Preview Without Recording**: Candidates can use a live browser camera preview during an interview. The app does not record or store candidate video.
+- **Fifteen Main Questions and Session Timer**: Interviews cover fifteen main questions; follow-ups are extra. The interview screen shows elapsed time instead of the question total, and history stores the session duration.
 - **Adaptive Multi-Turn Follow-Ups**: Evaluates response depth after each turn and formulates dynamic follow-ups probing trade-offs and architectural decisions.
 - **1-Click Recommended Session Auto-Fill**: Click any recommended session (e.g. *System Design*, *Behavioral Leadership*, *React Performance*) to automatically populate the setup form.
 - **Executive Performance Debrief**: In-depth scorecard across Communication, Technical Depth, Problem Solving, and Executive Presence, plus question-by-question response logs and constructive remarks.
 - **Candidate Dashboard**: Track completed sessions, review past transcripts, and manage uploaded resumes.
+
+### Resume Analysis
+
+Open **Resume Analysis** from the candidate navigation, upload or select a saved PDF/DOCX resume, and optionally enter a target role and job description. The analysis returns an estimated ATS score, section scores, matched and missing keywords, strengths, weaknesses, and concrete improvement steps. The latest result is saved with that resume and can be viewed again later. The score is an AI estimate, not a guarantee of how a particular employer’s screening software will rank the resume.
 
 ---
 
@@ -42,7 +49,7 @@ This monorepo consists of three decoupled components:
 - **Python**: 3.10+ (Python 3.12 recommended).
 - **Database**: MongoDB (Local MongoDB community server or MongoDB Atlas).
 - **LLM Provider**: A [Groq](https://groq.com/) API Key for high-speed model inference.
-- **Browser**: Modern Chromium-based browser (Chrome, Edge, Brave) with microphone and camera access.
+- **Browser**: Modern Chromium-based browser (Chrome, Edge, Brave) with microphone, camera, and Web Speech API access.
 
 ---
 
@@ -228,7 +235,7 @@ Deploy the backend services on **Render** and the frontend client on **Vercel**,
 ## Troubleshooting
 
 - **CORS or Network Error on Requests**: Ensure `VITE_API_BASE_URL` ends with `/api` and `CLIENT_URL` on Render matches your exact Vercel URL (including `https://` without trailing slash).
-- **Microphone or Camera Permission Blocked**: The Web Speech API and WebRTC camera stream require an HTTPS connection in deployed environments or `localhost` during local development.
+- **Microphone or Camera Permission Blocked**: Speech recognition and the live camera preview require HTTPS in deployed environments, or `localhost` during local development. Camera video is previewed in-browser only and is not recorded or stored.
 - **Render Free Tier Spin-up**: Render free web services spin down after 15 minutes of inactivity. The first request after sleep may take ~45 seconds to warm up.
 
 ---

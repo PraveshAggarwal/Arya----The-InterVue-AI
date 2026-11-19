@@ -96,24 +96,9 @@ export const InterviewSetupPage = () => {
     <div className="max-w-3xl mx-auto space-y-6 animate-in fade-in duration-300">
       <header className="pb-4 border-b border-[#141d33] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white">Create an Interview</h1>
-          <p className="text-sm text-slate-400 mt-1">Your resume, role, and experience shape the interview. Add a job description if you have one.</p>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-white">Create an Interview</h1>
+          <p className="text-xs sm:text-sm text-slate-400 mt-1">Your resume, role, and experience shape the interview. Add a job description if you have one.</p>
         </div>
-
-        {recommendationTag && (
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-blue-600/15 border border-blue-500/30 text-xs text-sky-300">
-            <CheckCircle2 className="w-3.5 h-3.5 text-sky-400" />
-            <span className="font-medium">Auto-filled: <strong className="text-white">{recommendationTag}</strong></span>
-            <button
-              type="button"
-              onClick={clearRecommendation}
-              className="text-slate-400 hover:text-white ml-1 p-0.5"
-              title="Clear pre-filled values"
-            >
-              <RotateCcw className="w-3 h-3" />
-            </button>
-          </div>
-        )}
       </header>
 
       <ResumeUploader
@@ -124,7 +109,7 @@ export const InterviewSetupPage = () => {
       />
 
       <form onSubmit={handleSubmit} className="space-y-5">
-        <Card className="p-6 space-y-5">
+        <Card className="p-4 sm:p-6 space-y-4 sm:space-y-5">
           <label className="block text-sm font-bold text-white">
             <span className="flex items-center gap-2 mb-2">
               <Briefcase className="w-4 h-4 text-sky-400" />

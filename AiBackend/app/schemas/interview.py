@@ -15,9 +15,9 @@ class InterviewPlanRequest(BaseModel):
     ] = "medium"
 
     total_questions: int = Field(
-        default=10,
+        default=15,
         ge=5,
-        le=20
+        le=15
     )
 
     resume_text: str = Field(
@@ -91,6 +91,12 @@ class NextQuestionRequest(BaseModel):
     remaining_topics: list[str] = Field(
         default_factory=list
     )
+
+    remaining_questions: list[str] = Field(default_factory=list)
+
+    main_question_number: int = Field(default=1, ge=1, le=15)
+
+    total_questions: int = Field(default=15, ge=1, le=15)
 
     followup_count: int = Field(
         default=0,

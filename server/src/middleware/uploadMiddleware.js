@@ -1,28 +1,8 @@
 
 const multer = require("multer");
 const path = require("path");
-const fs = require("fs");
-const { randomUUID } = require("crypto");
 
-const uploadDirectory = path.join(
-  process.cwd(),
-  "uploads",
-  "resumes"
-);
-
-fs.mkdirSync(uploadDirectory, { recursive: true });
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDirectory);
-  },
-
-  filename: (req, file, cb) => {
-    const extension = path.extname(file.originalname).toLowerCase();
-
-    cb(null, `${randomUUID()}${extension}`);
-  },
-});
+const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
   const extension = path.extname(file.originalname).toLowerCase();

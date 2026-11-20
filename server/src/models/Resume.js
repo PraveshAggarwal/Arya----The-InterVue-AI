@@ -23,7 +23,18 @@ const resumeSchema = new mongoose.Schema(
 
     filePath: {
       type: String,
-      required: true,
+      default: "",
+    },
+
+    fileData: {
+      type: Buffer,
+      select: false,
+    },
+
+    fileHash: {
+      type: String,
+      default: "",
+      index: true,
     },
 
     mimeType: {
@@ -66,5 +77,7 @@ const resumeSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+resumeSchema.index({ user: 1, fileHash: 1 });
 
 module.exports = mongoose.model("Resume", resumeSchema);

@@ -88,9 +88,10 @@ export const ResumeAnalysisPage = () => {
       const resume = data.resume;
       setResumes((current) => [resume, ...current.filter((item) => item._id !== resume._id)]);
       setSelectedId(resume._id);
-      setAnalysis(null);
-      setAnalyzedAt(null);
-      addToast('Resume uploaded and parsed.', 'success');
+      setAnalysis(resume.analysis || null);
+      setAnalyzedAt(resume.analyzedAt || null);
+      setTargetRole(resume.analysisTargetRole || '');
+      addToast(data.message || 'Resume uploaded and processed.', 'success');
     } catch (error) {
       addToast(error.response?.data?.message || 'Resume upload failed.', 'error');
     } finally {

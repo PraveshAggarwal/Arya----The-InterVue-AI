@@ -9,6 +9,7 @@ const {
   uploadResume,
   getMyResumes,
   getResumeById,
+  downloadResume,
   analyzeMyResume,
   deleteResume,
 } = require("../controllers/resumeController");
@@ -21,6 +22,12 @@ router.post("/upload", upload.single("resume"), uploadResume);
 
 // GET /api/resumes
 router.get("/", getMyResumes);
+
+// GET /api/resumes/:id/file
+router.get("/:id/file", downloadResume);
+
+// GET /api/resumes/:id/download
+router.get("/:id/download", downloadResume);
 
 // POST /api/resumes/:id/analyze
 router.post("/:id/analyze", analyzeMyResume);

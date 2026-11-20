@@ -57,7 +57,7 @@ export const InterviewSetupPage = () => {
       const resume = result.data.resume;
       setCurrentResume(resume);
       setResumeId(resume._id);
-      addToast('Resume uploaded and parsed.', 'success');
+      addToast(result.data?.message || 'Resume uploaded and parsed.', 'success');
     } catch (error) {
       addToast(error.response?.data?.message || 'Resume upload failed.', 'error');
     } finally {

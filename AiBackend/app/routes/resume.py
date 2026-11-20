@@ -28,7 +28,14 @@ RESUME TEXT:
 
 Score the resume from 0 to 100 using evidence of clear sections and contact details, relevant skills and keywords, readable structure, measurable impact, and role alignment. Give specific findings grounded in the text. Strengths and weaknesses should each have at least one item. Improvement steps must be concrete and must not ask the candidate to add claims that are not true. Matched and missing keywords should be based on the supplied job description when available; otherwise use role-related terms and say so in the summary.
 
-Return only JSON matching the requested schema. Keep each list concise and useful."""
+Also score each of these 5 sections individually from 0 to 100:
+- roleFit: how well the resume trajectory matches the target role
+- skills: presence and relevance of technical skills and keywords
+- experience: depth and clarity of work experience descriptions
+- impact: presence of quantified metrics (%, $, ms, throughput, etc.)
+- structure: clean formatting, section hierarchy, contact info completeness
+
+Return only JSON with exact keys: atsScore, summary, strengths, weaknesses, improvements, matchedKeywords, missingKeywords, sectionScores (with keys: roleFit, skills, experience, impact, structure). Keep each list concise and useful."""
 
     schema = {
         "type": "object",
@@ -57,7 +64,19 @@ Return only JSON matching the requested schema. Keep each list concise and usefu
         "additionalProperties": False,
     }
     try:
-        analysis = await generate_json(prompt, schema)
+        raw = await generate_json(prompt, schema)
+        analysis = {
+            "atsScore": raw.get("atsScore") or raw.get("score", 0),
+            "summary": raw.get("summary", ""),
+            "strengths": raw.get("strengths", []),
+            "weaknesses": raw.get("weaknesses", []),
+            "improvements": raw.get("improvements") or raw.get("improvement_steps", []),
+            "matchedKeywords": raw.get("matchedKeywords") or raw.get("matched_keywords", []),
+            "missingKeywords": raw.get("missingKeywords") or raw.get("missing_keywords", []),
+            "sectionScores": raw.get("sectionScores") or {
+                "roleFit": 0, "skills": 0, "experience": 0, "impact": 0, "structure": 0
+            },
+        }
         return {"success": True, "data": analysis}
     except Exception as error:
         raise HTTPException(status_code=502, detail=f"Resume analysis failed: {error}") from error

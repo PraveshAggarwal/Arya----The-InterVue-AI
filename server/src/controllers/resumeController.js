@@ -42,6 +42,10 @@ const uploadResume = async (req, res) => {
 
       if (existingResume) {
         let needsSave = false;
+        if (!existingResume.email) {
+          existingResume.email = req.user.email;
+          needsSave = true;
+        }
         if (!existingResume.fileHash) {
           existingResume.fileHash = fileHash;
           needsSave = true;
@@ -54,6 +58,11 @@ const uploadResume = async (req, res) => {
           await existingResume.save();
         }
       }
+    }
+
+    if (existingResume && !existingResume.email) {
+      existingResume.email = req.user.email;
+      await existingResume.save();
     }
 
     // If already exists in DB, reuse the previously uploaded resume with its existing id
@@ -81,6 +90,7 @@ const uploadResume = async (req, res) => {
     // Save only to MongoDB database (no local file storage)
     const resume = await Resume.create({
       user: req.user._id,
+      email: req.user.email,
       originalName: req.file.originalname,
       fileName: generatedFileName,
       filePath: "",
@@ -111,6 +121,10 @@ const uploadResume = async (req, res) => {
 
 const getMyResumes = async (req, res) => {
   try {
+    await Resume.updateMany(
+      { user: req.user._id, $or: [{ email: { $exists: false } }, { email: "" }] },
+      { $set: { email: req.user.email } },
+    );
     const resumes = await Resume.find({ user: req.user._id, isActive: true })
       .select("-extractedText -fileData")
       .sort({ createdAt: -1 });

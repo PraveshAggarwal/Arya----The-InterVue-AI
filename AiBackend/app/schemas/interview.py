@@ -4,6 +4,8 @@ from typing import Literal
 
 class InterviewPlanRequest(BaseModel):
 
+    email: str = Field(default="", max_length=320)
+
     role: str = Field(min_length=2, max_length=100)
 
     experience: str = Field(min_length=1, max_length=50)

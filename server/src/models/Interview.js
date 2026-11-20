@@ -41,6 +41,14 @@ const interviewSchema = new mongoose.Schema(
       index: true,
     },
 
+    email: {
+      type: String,
+      trim: true,
+      lowercase: true,
+      index: true,
+      default: "",
+    },
+
     resume: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Resume",

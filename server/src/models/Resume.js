@@ -10,6 +10,14 @@ const resumeSchema = new mongoose.Schema(
       index: true,
     },
 
+    email: {
+      type: String,
+      trim: true,
+      lowercase: true,
+      index: true,
+      default: "",
+    },
+
     originalName: {
       type: String,
       required: true,

@@ -17,6 +17,7 @@ const createInterview = async (req, res) => {
     if (!resume) return res.status(404).json({ success: false, message: "Resume not found." });
     const interview = await Interview.create({
       user: req.user._id,
+      email: req.user.email,
       resume: resume._id,
       jobRole: jobRole.trim(),
       experienceYears: parsedExperience,
@@ -51,6 +52,10 @@ const startInterview = async (req, res) => {
 
 const getMyInterviews = async (req, res) => {
   try {
+    await Interview.updateMany(
+      { user: req.user._id, $or: [{ email: { $exists: false } }, { email: "" }] },
+      { $set: { email: req.user.email } },
+    );
     const interviews = await Interview.find({ user: req.user._id }).populate("resume", "originalName").sort({ createdAt: -1 });
     return res.status(200).json({ success: true, count: interviews.length, data: interviews });
   } catch (error) {

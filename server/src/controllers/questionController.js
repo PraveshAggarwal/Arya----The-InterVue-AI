@@ -62,6 +62,7 @@ const generateInterviewQuestions = async (req, res) => {
     }
 
     const aiPayload = {
+      email: req.user.email,
       role: interview.jobRole,
       experience: `${interview.experienceYears} years`,
       difficulty: "medium",

@@ -29,6 +29,7 @@ async def generate_questions(
         )
 
         session = {
+            "email": data.email.strip().lower(),
             "role": data.role,
             "experience": data.experience,
             "difficulty": data.difficulty,

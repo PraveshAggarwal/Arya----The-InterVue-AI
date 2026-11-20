@@ -41,20 +41,17 @@ async def _with_retry(fn, retries: int = 3) -> str:
 
 # ── Gemini (used for ATS resume analysis) ────────────────────────────────────
 
-async def _gemini_json(prompt: str, max_tokens: int, response_schema: dict | None = None) -> str:
+async def _gemini_json(prompt: str, max_tokens: int) -> str:
     if not gemini_client:
         raise RuntimeError("GOOGLE_API_KEY is not configured")
-    config_kwargs: dict = {
-        "max_output_tokens": max_tokens,
-        "temperature": 0.2,
-        "response_mime_type": "application/json",
-    }
-    if response_schema:
-        config_kwargs["response_schema"] = response_schema
     response = await gemini_client.aio.models.generate_content(
         model=settings.GEMINI_MODEL,
         contents=prompt,
-        config=types.GenerateContentConfig(**config_kwargs),
+        config=types.GenerateContentConfig(
+            max_output_tokens=max_tokens,
+            temperature=0.2,
+            response_mime_type="application/json",
+        ),
     )
     if not response.text:
         raise RuntimeError("Gemini returned an empty response")
@@ -106,10 +103,10 @@ async def generate_text(prompt: str) -> str:
 async def generate_json(prompt: str, schema: dict) -> dict:
     """Used by ATS resume analysis — Gemini only, Groq as fallback."""
     try:
-        raw = await _with_retry(lambda: _gemini_json(prompt, max_tokens=4096, response_schema=schema))
+        raw = await _with_retry(lambda: _gemini_json(prompt, max_tokens=4096))
     except Exception as gemini_error:
         if not groq_client:
             raise
         print(f"[LLM] Gemini failed ({gemini_error}), falling back to Groq")
-        raw = await _with_retry(lambda: _groq_generate(prompt, response_schema=schema, max_tokens=4096))
+        raw = await _with_retry(lambda: _groq_generate(prompt, response_schema=schema, max_tokens=8192))
     return _clean_json(raw)

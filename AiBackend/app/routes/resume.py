@@ -19,23 +19,38 @@ async def analyze_resume(data: ResumeAnalysisRequest):
     role_context = data.target_role.strip() or "No specific role supplied; assess general ATS readiness"
     job_context = data.job_description.strip() or "No job description supplied; assess general role fit"
     prompt = f"""You are an evidence-based resume and ATS-readiness reviewer.
-Analyze only the resume content below. Do not invent facts, infer protected traits, or guarantee ATS performance. Treat the score as an estimate based on common parsing and relevance practices, not a prediction for a specific company's software.
+Analyze only the resume content below. Do not invent facts, infer protected traits, or guarantee ATS performance.
 
 TARGET ROLE: {role_context}
 JOB DESCRIPTION: {job_context[:8000]}
 RESUME TEXT:
 {data.resume_text[:18000]}
 
-Score the resume from 0 to 100 using evidence of clear sections and contact details, relevant skills and keywords, readable structure, measurable impact, and role alignment. Give specific findings grounded in the text. Strengths and weaknesses should each have at least one item. Improvement steps must be concrete and must not ask the candidate to add claims that are not true. Matched and missing keywords should be based on the supplied job description when available; otherwise use role-related terms and say so in the summary.
+Return a JSON object with EXACTLY these keys and no others:
+{{
+  "atsScore": <integer 0-100>,
+  "summary": "<2-3 sentence overall assessment>",
+  "strengths": ["<strength 1>", "<strength 2>", "<strength 3>"],
+  "weaknesses": ["<weakness 1>", "<weakness 2>"],
+  "improvements": ["<concrete step 1>", "<concrete step 2>", "<concrete step 3>"],
+  "matchedKeywords": ["<keyword>", ...],
+  "missingKeywords": ["<keyword>", ...],
+  "sectionScores": {{
+    "roleFit": <integer 0-100, how well resume matches target role>,
+    "skills": <integer 0-100, presence of relevant technical skills>,
+    "experience": <integer 0-100, depth and clarity of work experience>,
+    "impact": <integer 0-100, presence of quantified metrics like % $ ms>,
+    "structure": <integer 0-100, formatting section hierarchy contact info>
+  }}
+}}
 
-Also score each of these 5 sections individually from 0 to 100:
-- roleFit: how well the resume trajectory matches the target role
-- skills: presence and relevance of technical skills and keywords
-- experience: depth and clarity of work experience descriptions
-- impact: presence of quantified metrics (%, $, ms, throughput, etc.)
-- structure: clean formatting, section hierarchy, contact info completeness
-
-Return only JSON with exact keys: atsScore, summary, strengths, weaknesses, improvements, matchedKeywords, missingKeywords, sectionScores (with keys: roleFit, skills, experience, impact, structure). Keep each list concise and useful."""
+Rules:
+- All 8 top-level keys are required. Do not omit any.
+- sectionScores must contain all 5 keys with real scored values, not 0.
+- strengths and weaknesses must each have at least 1 item.
+- improvements must have at least 1 concrete actionable step.
+- matchedKeywords and missingKeywords based on job description if provided, else use role-related terms.
+- Do not wrap in markdown. Return raw JSON only."""
 
     schema = {
         "type": "object",

@@ -316,49 +316,6 @@ npm run dev
 | `POST` | `/api/interview/performance-report` | 4-dimension performance rubric scoring and question-by-question reviews |
 
 ---
-
-## 🗄️ Database Schemas
-
-### User Schema (`User.js`)
-- `name` *(String, required)*
-- `email` *(String, required, unique, lowercase)*
-- `password` *(String, required, hashed with bcrypt)*
-- `role` *(String, default: "candidate")*
-- `phone` *(String)*
-- `profileImage` *(String)*
-
-### Resume Schema (`Resume.js`)
-- `user` *(ObjectId &rarr; User, required, indexed)*
-- `originalName` *(String, required)*
-- `fileName` *(String, required)*
-- `filePath` *(String, required)*
-- `mimeType` *(String)*
-- `fileSize` *(Number)*
-- `extractedText` *(String)*
-- `analysis` *(Mixed: atsScore, sectionScores, matchedKeywords, missingKeywords, strengths, weaknesses, improvements)*
-- `analysisTargetRole` *(String)*
-- `analyzedAt` *(Date)*
-- `isActive` *(Boolean, default: true)*
-
-### Interview Schema (`Interview.js`)
-- `user` *(ObjectId &rarr; User, required, indexed)*
-- `resume` *(ObjectId &rarr; Resume, required)*
-- `jobRole` *(String, required)*
-- `experienceYears` *(Number, required)*
-- `jobDescription` *(String)*
-- `totalQuestions` *(Number, default: 15)*
-- `questions` *(Array of Question objects with category, difficulty, order)*
-- `transcript` *(Array of `{ question, answer }` turns)*
-- `report` *(Mixed: overallScore, summary, strengths, weaknesses, recommendations, performance, questionReviews)*
-- `overallScore` *(Number, 0–100)*
-- `status` *(String: "draft", "completed")*
-- `startedAt` *(Date)*
-- `completedAt` *(Date)*
-- `duration` *(Number, seconds)*
-- `completedMainQuestions` *(Number)*
-
----
-
 ## 🎙️ Speech & Audio Pipeline
 
 1. **Browser Speech Recognition**: Handled via the browser's native `webkitSpeechRecognition` or `SpeechRecognition` API. Transcripts stream continuously into the candidate's active turn.
